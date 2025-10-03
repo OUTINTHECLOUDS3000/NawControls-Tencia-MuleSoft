@@ -1,0 +1,2595 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:workday="http://www.mulesoft.org/schema/mule/workday"
+	xmlns:sockets="http://www.mulesoft.org/schema/mule/sockets"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/sockets http://www.mulesoft.org/schema/mule/sockets/current/mule-sockets.xsd
+http://www.mulesoft.org/schema/mule/workday http://www.mulesoft.org/schema/mule/workday/current/mule-workday.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="1b37be1f-93ac-494d-8d8b-f3f4bde5122d" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="4b2774a4-5851-449f-ad2d-07dc2af648f7" >
+		<http:request-connection protocol="HTTPS" host="sfapi.nawcontrols.com.au" port="3443"/>
+	</http:request-config>
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="3269723e-923a-49e8-8e67-3727d97bc80a" >
+		<salesforce:oauth-client-credentials-connection >
+			<salesforce:oauth-client-credentials clientId="3MVG9QJ.PEcCek9bS9vM.KKqo8NK8gLrEzpqwDpZdOMbqAB9LSqgTxaqxbyboMY11XvNnsSbw_fjA51qWGtnu" clientSecret="8579FF25C9BF3358E47966654ADDF23497747CFDA0D27EE26E45423E2A3946CB" tokenUrl="https://nawcontrols.my.salesforce.com/services/oauth2/token" />
+		</salesforce:oauth-client-credentials-connection>
+	</salesforce:sfdc-config>
+	<sub-flow name="AccountSyncToTencia" doc:id="e32fbc2b-ef69-42c9-a3a7-7e52770776ea" >
+		<set-variable value="#[payload.data.payload.Record_Id__c]" doc:name="Record Id" doc:id="baa32010-97fb-454f-a5eb-9c0510f16924" variableName="recordId" />
+		<set-variable value="#[payload.data.payload.Event_Type__c]" doc:name="Operation Type" doc:id="5c8566d9-266c-4a16-95a6-0ab124364586" variableName="OperationType" />
+		<ee:transform doc:name="Transform Message" doc:id="89dbe5e1-7c9b-45ec-b39f-730ae9720a6d">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:query doc:name="Query" doc:id="ec72ccfb-34b8-4566-a9d8-767f6bf21ee9" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query><![CDATA[Select Customer_Code__c,  
+    Period_Type__c,  
+    Payment_Terms__c,  
+    Alpha__c,  
+    Name,  
+    Area_Code__c,  
+    Stock_Location_Description__c,  
+    Type,  
+    Sales_Tax_Type__c,  
+    Price_Code__c,  
+    Customer_Type_Code__c,  
+    Sales_Code__c,  
+    Customer_Type_Description__c,  
+    Date_Added__c,  
+    Debtor_Code__c,  
+    Debtor_Name__c,  
+    Delivery_Address_1__c,  
+    Delivery_Address_2__c,  
+    Delivery_Address_3__c,  
+    Delivery_Address_4__c,  
+    Delivery_Address_PostCode__c,  
+    Delivery_Name__c,  
+    Discount_Terms__c,  
+    Future_Balance__c,  
+    Future_Margin_Percent__c,  
+    Future_Margin_Value__c,  
+    Future_Sales__c,  
+    General_Contact_Email__c,  
+    General_Contact_Mobile__c,  
+    General_Contact_Name__c,  
+    General_Contact_Phone__c,  
+    Hold_Balance__c,  
+    Invoice_Disc__c,  
+    Last_Invoice_Date__c,  
+    Last_Invoice_Value__c,  
+    Last_Order_Date__c,  
+    Last_Order_Value__c,  
+    Last_Receipt_Date__c,  
+    Last_Receipt_Value__c,  
+    LLY_Margin_Percent__c,  
+    LLY_Margin_Valu__c,  
+    LLY_Sales__c,  
+    LYR_Margin_Percent__c,  
+    LYR_Margin_Value__c,  
+    LYR_Sales__c,  
+    Orders_Balance__c,  
+    PTD_Margin_Percent__c,  
+    PTD_Margin_Value__c,  
+    PTD_Sales__c,  
+    Sales_Contact_Email__c,  
+    Sales_Contact_Mobile__c,  
+    Sales_Contact_Name__c,  
+    Sales_Contact_Phone__c,  
+    Sales_Description__c,  
+    Total_Balance__c,  
+    Unique_Id__c,  
+    YTD_Margin_Percent__c,  
+    YTD_Margin_Value__c,  
+    YTD_Sales__c,  
+    Account_Contact_Email__c,  
+    Account_Contact_Mobile__c,  
+    Account_Contact_Name__c,  
+    Account_Contact_Phone__c,  
+    SMS_Flag  from Account where Id= ':recordId' LIMIT 1]]></salesforce:salesforce-query>
+			<salesforce:parameters><![CDATA[#[output application/java
+---
+{
+	"recordId" : payload.data.payload.Record_Id__c
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="0207d0f0-57ad-4c1f-b5ac-ed5dd12d9555">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    customer_code: payload[0].Customer_Code__c,
+    period_type: payload[0].Period_Type__c,
+    payment_terms: payload[0].Payment_Terms__c,
+    customer_alpha: payload[0].Alpha__c,
+    customer_name: payload[0].Name,
+    area_code: payload[0].Area_Code__c,
+    stock_location: payload[0].Stock_Location_Description__c,
+    account_type: payload[0].Type,
+    sales_tax_type: payload[0].Sales_Tax_Type__c,
+    price_code: payload[0].Price_Code__c,
+    customer_type_code: payload[0].Customer_Type_Code__c,
+    sales_code: payload[0].Sales_Code__c,
+    customer_type_description: payload[0].Customer_Type_Description__c,
+    date_added: payload[0].Date_Added__c,
+    debtor_code: payload[0].Debtor_Code__c,
+    debtor_name: payload[0].Debtor_Name__c,
+    delivery_address_1: payload[0].Delivery_Address_1__c,
+    delivery_address_2: payload[0].Delivery_Address_2__c,
+    delivery_address_3: payload[0].Delivery_Address_3__c,
+    delivery_address_4: payload[0].Delivery_Address_4__c,
+    delivery_postcode: payload[0].Delivery_Address_PostCode__c,
+    delivery_name: payload[0].Delivery_Name__c,
+    discount_terms: payload[0].Discount_Terms__c,
+    future_balance: payload[0].Future_Balance__c,
+    future_margin_percent: payload[0].Future_Margin_Percent__c,
+    future_margin_value: payload[0].Future_Margin_Value__c,
+    future_sales: payload[0].Future_Sales__c,
+    general_contact_email: payload[0].General_Contact_Email__c,
+    general_contact_mobile: payload[0].General_Contact_Mobile__c,
+    general_contact_name: payload[0].General_Contact_Name__c,
+    general_contact_phone: payload[0].General_Contact_Phone__c,
+    hold_balance: payload[0].Hold_Balance__c,
+    invoice_disc: payload[0].Invoice_Disc__c,
+    last_invoice_date: payload[0].Last_Invoice_Date__c,
+    last_invoice_value: payload[0].Last_Invoice_Value__c,
+    last_order_date: payload[0].Last_Order_Date__c,
+    last_order_value: payload[0].Last_Order_Value__c,
+    last_receipt_date: payload[0].Last_Receipt_Date__c,
+    last_receipt_value: payload[0].Last_Receipt_Value__c,
+    lly_margin_percent: payload[0].LLY_Margin_Percent__c,
+    lly_margin_value: payload[0].LLY_Margin_Valu__c,
+    lly_sales: payload[0].LLY_Sales__c,
+    lyr_margin_percent: payload[0].LYR_Margin_Percent__c,
+    lyr_margin_value: payload[0].LYR_Margin_Value__c,
+    lyr_sales: payload[0].LYR_Sales__c,
+    orders_balance: payload[0].Orders_Balance__c,
+    ptd_margin_percent: payload[0].PTD_Margin_Percent__c,
+    ptd_margin_value: payload[0].PTD_Margin_Value__c,
+    ptd_sales: payload[0].PTD_Sales__c,
+    sales_contact_email: payload[0].Sales_Contact_Email__c,
+    sales_contact_mobile: payload[0].Sales_Contact_Mobile__c,
+    sales_contact_name: payload[0].Sales_Contact_Name__c,
+    sales_contact_phone: payload[0].Sales_Contact_Phone__c,
+    sales_description: payload[0].Sales_Description__c,
+    total_balance: payload[0].Total_Balance__c,
+    unique_id: payload[0].Unique_Id__c,
+    ytd_margin_percent: payload[0].YTD_Margin_Percent__c,
+    ytd_margin_value: payload[0].YTD_Margin_Value__c,
+    ytd_sales: payload[0].YTD_Sales__c,
+    account_contact_email: payload[0].Account_Contact_Email__c,
+    account_contact_mobile: payload[0].Account_Contact_Mobile__c,
+    account_contact_name: payload[0].Account_Contact_Name__c,
+    account_contact_phone: payload[0].Account_Contact_Phone__c,
+    sms_flag: payload[0].SMS_Flag
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Check Operation Type" doc:id="4205fb7d-3ad2-4427-b6f0-e4e3355dfad3">
+			<when expression="#[vars.OperationType == 'Update']">
+				<logger level="INFO" doc:name="Update Request" doc:id="491a7058-36fa-4c99-af92-fa1aa3f97101" />
+				<http:request method="PUT" doc:name="Request" doc:id="d2733705-4e48-461f-aa5a-39835ece2fda" config-ref="HTTP_Request_configuration" path="/postorputcustomerv2">
+			<http:body><![CDATA[#[%dw 2.0
+output application/json
+---
+payload]]]></http:body>
+					<http:headers><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+		</http:request>
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Create Request" doc:id="d0b83fd7-a5e4-4b1a-8975-1d6e51ae2887" />
+				<http:request method="POST" doc:name="Request" doc:id="aea80b31-e6e1-44e6-bd8f-d2a3e36150c8" path="/postorputcustomerv2" config-ref="HTTP_Request_configuration">
+					<http:body><![CDATA[#[%dw 2.0
+output application/json
+---
+payload]]]></http:body>
+					<http:headers><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+					<http:response-validator>
+						<http:failure-status-code-validator values="412" />
+					</http:response-validator>
+				</http:request>
+				<ee:transform doc:name="Transform Message" doc:id="e151024d-d1c6-43e5-9e89-b1ebe85fbaf7">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+[
+	{
+	Id: vars.recordId as String,
+	Unique_Id__c : payload.unique_id as String
+	}
+]]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<salesforce:update type="Account" doc:name="Update" doc:id="4b4e45cb-1001-4c66-b3f4-1111525248aa" config-ref="Salesforce_Config" />
+				<ee:transform doc:name="Transform Message" doc:id="21fe81df-0d62-4d81-8952-042ff27dd12f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="QuoteSyncToTencia" doc:id="88572857-8f7d-42c8-a5c5-9f3870194b30" >
+		<set-variable value="#[payload.data.payload.Record_Id__c]" doc:name="Record Id" doc:id="f29fe112-33eb-42d8-85b7-4c45e4ce9b74" variableName="recordId" />
+		<set-variable value="#[payload.data.payload.Event_Type__c]" doc:name="Operation Type" doc:id="e887c62d-b114-4549-81fd-1917fa09a935" variableName="OperationType" />
+		<ee:transform doc:name="Transform Message" doc:id="080cecb0-24b3-42c5-866b-9786b52a162e">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:query doc:name="Query" doc:id="8cf6d4bf-7b44-4852-89e7-dfc0e9bde711" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query><![CDATA[SELECT
+    Customer_Code__c,
+    Delivery_Name__c,
+    Name,
+    Unique_Id__c,
+    Delivery_Date__c,
+    Order_Code__c,
+    Status,
+    Quote_Date__c,
+    Cust_Order_Number__c,
+    Currency_Code__c,
+    Currency_Rate__c,
+    Tax_Code__c,
+    Tax_Certificate__c,
+    Price_Code__c,
+    Sales_Code__c,
+    Frequency_Code__c,
+    Number_of_Days__c,
+    Next_Order_Due__c,
+    Document_Prefix__c,
+    Despatch_Notes__c,
+    Address_Code__c,
+    Address_1__c,
+    Address_2__c,
+    Address_3__c,
+    Postcode__c,
+    Bar_Postcode__c,
+    Contact_Name__c,
+    Phone_Number__c,
+    Email_Address__c,
+    Run_Code__c,
+    Fax,
+    Tax,
+    Quote_Discount__c,
+    Quote_Sent_Date__c
+FROM Quote
+ where Id= ':recordId' LIMIT 1]]></salesforce:salesforce-query>
+			<salesforce:parameters><![CDATA[#[output application/java
+---
+{
+	"recordId" : payload.data.payload.Record_Id__c
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="2915bbc2-8375-49c4-bbd8-92d15379bde9">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    customer_code: payload[0].Customer_Code__c,
+    delivery_name: payload[0].Delivery_Name__c,
+    reference_nbr: payload[0].Name,
+    unique_id: payload[0].Unique_Id__c,
+    delivery_date: payload[0].Delivery_Date__c,
+    order_code: payload[0].Order_Code__c,
+    customer_order: payload[0].Cust_Order_Number__c,
+    currency_code: payload[0].Currency_Code__c,
+    currency_rate: payload[0].Currency_Rate__c,
+    sales_tax_type: payload[0].Tax_Code__c,
+    tax_certificate: payload[0].Tax_Certificate__c,
+    price_code: payload[0].Price_Code__c,
+    sales_code: payload[0].Sales_Code__c,
+    frequency_code: payload[0].Frequency_Code__c,
+    nbr_of_days: payload[0].Number_of_Days__c,
+    next_due: payload[0].Next_Order_Due__c,
+    forms_prefix: payload[0].Document_Prefix__c,
+    despatch_note_1: payload[0].Despatch_Notes__c,
+    address_code: payload[0].Address_Code__c,
+    delivery_note_1: payload[0].Address_1__c,
+    delivery_note_2: payload[0].Address_2__c,
+    delivery_note_3: payload[0].Address_3__c,
+    delivery_postcode: payload[0].Postcode__c,
+    delivery_post_barcode: payload[0].Bar_Postcode__c,
+    contact_name: payload[0].Contact_Name__c,
+    phone_nbr: payload[0].Phone_Number__c,
+    email_address: payload[0].Email_Address__c,
+    run_code: payload[0].Run_Code__c,
+    fax_nbr: payload[0].Fax,
+    tax_value: payload[0].Tax,
+    disc_value: payload[0].Quote_Discount__c,
+    despatch_date: payload[0].Quote_Sent_Date__c
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Check Operation Type" doc:id="acc94252-1d93-4b0b-9335-48098ed8bddb">
+			<when expression="#[vars.OperationType == 'Update']">
+				<logger level="INFO" doc:name="Update Request" doc:id="0b6d0f29-47d6-4905-a8bd-316758b48982" message="Update Quote Request"/>
+				<http:request method="PUT" doc:name="Request" doc:id="ee0dd7c2-4c12-4022-96f2-d6b4bbb22515" config-ref="HTTP_Request_configuration" path="/postorputquotev2">
+			<http:body><![CDATA[#[%dw 2.0
+output application/json
+---
+payload]]]></http:body>
+					<http:headers><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+		</http:request>
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Create Request" doc:id="9cfa8eae-2258-4e1b-ba54-cef68a0636ab" message="Update Create Quote Request"/>
+				<http:request method="POST" doc:name="Request" doc:id="182a7748-6b33-4e2d-befd-fc24445f629b" path="/postorputquotev2" config-ref="HTTP_Request_configuration">
+					<http:body><![CDATA[#[%dw 2.0
+output application/json
+---
+payload]]]></http:body>
+					<http:headers><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+					<http:response-validator>
+						<http:failure-status-code-validator values="412" />
+					</http:response-validator>
+				</http:request>
+				<ee:transform doc:name="Transform Message" doc:id="cfd17a3c-01e8-45e5-9713-3fb3ed4687d0">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+[
+	{
+	Id: vars.recordId as String,
+	Unique_Id__c : payload.unique_id as String
+	}
+]]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<salesforce:update type="Account" doc:name="Update" doc:id="ee970ed0-44f1-40a8-a72f-1267396e4013" config-ref="Salesforce_Config" />
+				<ee:transform doc:name="Transform Message" doc:id="e891b120-3746-4687-9356-795f318a1f30">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<flow name="GetCustomersDataLoadFlow(BulkDataLoad)" doc:id="85555619-0f8e-4685-b9f4-bcc0caccc59d" >
+		<http:listener doc:name="Listener" doc:id="41d28ed9-0f66-460b-ad81-824d3416b673" config-ref="HTTP_Listener_config" path="/getCustomers"/>
+		<http:request method="GET" doc:name="Get Customers Request" doc:id="436cf6ac-4ca2-4291-b8c5-b62a9e391403" config-ref="HTTP_Request_configuration" path="/getcustomersv2?searchtype=range&amp;offset=0&amp;maxrows=1">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="dcd00ae0-a431-4ba2-8b6d-6b3590551e67" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.customers[0].total_available_rows]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload]" doc:name="Total Record Size" doc:id="0f43f89b-4931-4782-91e5-7b83d9e9b209" variableName="TotalRecordSize"/>
+		<foreach doc:name="For Each" doc:id="30ae79e3-1d43-4d27-8b32-5b85ad5d69f4" collection="#[1 to round(vars.TotalRecordSize as Number /1000)]">
+			<set-variable value="#[(vars.counter-1) * 1000]" doc:name="Off Set" doc:id="422f83e9-bef1-4274-adf6-47edae9693bc" variableName="offSet" />
+			<logger level="INFO" doc:name="Logger" doc:id="ac2c50fc-836e-49fa-a3a3-8ffaeabeb2f7" message="#[vars.offSet]" />
+			<http:request method="GET" doc:name="Get Customers Request" doc:id="e62a6e02-f4ee-47ab-b8b0-e7b418f18c17" config-ref="HTTP_Request_configuration" path="/getcustomersv2?searchtype=range&amp;offset={offSet}&amp;maxRows=1000">
+				<http:headers><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+				<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"offSet" : vars.offSet
+}]]]></http:uri-params>
+				<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"offSet" : vars.offSet
+}]]]></http:query-params>
+			</http:request>
+			<ee:transform doc:name="Transform Message" doc:id="124fb440-def6-472e-8e27-470dae531122">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+// Function to trim any field to 15 characters
+fun trimToNChars(value,limit) = 
+ if (value != null and sizeOf(value) > limit) 
+ value[0 to (limit-1)] 
+ else 
+ value
+---
+payload.customers map((cus, index) ->
+{
+Profile__c: cus.profile,
+Type: cus.account_type,
+Aged_Balance_1__c: cus.aged_balance_1,
+Aged_Balance_2__c: cus.aged_balance_2,
+Aged_Balance_3__c: cus.aged_balance_3,
+Aged_Balance_4__c: cus.aged_balance_4,
+Aged_Balance_5__c: cus.aged_balance_5,
+Alpha__c: cus.customer_alpha,
+Area_Code__c: cus.area_code,
+Credit_Limit__c: cus.credit_limit,
+Current_Balance__c: cus.current_balance,
+Customer_Code__c: cus.customer_code,
+Customer_Type_Code__c: cus.customer_type_code,
+Customer_Type_Description__c: cus.customer_type_code,
+Date_Added__c: cus.date_added as Date,
+Debtor_Code__c: cus.customer_code,
+Debtor_Name__c: cus.customer_name,
+Delivery_Address_1__c: cus.delivery_address_1,
+Delivery_Address_2__c: cus.delivery_address_2,
+Delivery_Address_3__c: cus.delivery_address_3,
+Delivery_Address_4__c: cus.delivery_address_4,
+Delivery_Address_PostCode__c: cus.delivery_postcode,
+Delivery_Name__c: cus.delivery_name,
+Discount_Terms__c: cus.discount_terms,
+Future_Balance__c: cus.future_balance,
+Future_Margin_Percent__c: cus.pct_margin_fut,
+Future_Margin_Value__c: cus.margin_value_fut,
+Future_Sales__c: cus.sales_value_fut,
+General_Contact_Email__c: trimToNChars(cus.general_email,50),
+General_Contact_Mobile__c: trimToNChars(cus.general_mobile_nbr,15),
+General_Contact_Name__c: cus.general_contact,
+General_Contact_Phone__c: trimToNChars(cus.general_phone_nbr,15),
+Hold_Balance__c: cus.hold_balance,
+Invoice_Disc__c: cus.disc_pct,
+Last_Invoice_Date__c: cus.date_last_invoice,
+Last_Invoice_Value__c: cus.value_last_invoice,
+//Last_Order_Date__c: cus.date_last_order,
+Last_Order_Value__c: cus.value_last_order,
+Last_Receipt_Date__c: cus.date_last_receipt,
+Last_Receipt_Value__c: cus.value_last_receipt,
+LLY_Margin_Percent__c: cus.pct_margin_lly,
+LLY_Margin_Valu__c: cus.margin_value_lly,
+LLY_Sales__c: cus.sales_value_lly,
+LYR_Margin_Percent__c: cus.pct_margin_ytd,
+LYR_Margin_Value__c: cus.margin_value_lyr,
+LYR_Sales__c: cus.sales_value_lyr,
+Name: cus.customer_name,
+Orders_Balance__c: cus.orders_balance,
+Payment_Terms__c: cus.payment_terms,
+Period_Type__c: cus.period_type,
+Price_Code__c: cus.price_code,
+Price_Group__c: cus.area_code,
+PTD_Margin_Percent__c: cus.pct_margin_ptd,
+PTD_Margin_Value__c: cus.margin_value_ptd,
+PTD_Sales__c: cus.sales_value_ptd,
+Sales_Code__c: cus.sales_code,
+Sales_Contact_Email__c: trimToNChars(cus.sales_email,50),
+Sales_Contact_Mobile__c: trimToNChars(cus.sales_mobile_nbr,15),
+Sales_Contact_Name__c: cus.sales_contact_name,
+Sales_Contact_Phone__c: trimToNChars(cus.sales_phone_nbr,15),
+Sales_Description__c: cus.sales_code,
+Sales_Tax_Type__c: cus.sales_tax_type,
+Total_Balance__c: cus.total_balance,
+Unique_Id__c: cus.unique_id as String,
+YTD_Margin_Percent__c: cus.pct_margin_ytd,
+YTD_Margin_Value__c: cus.margin_value_ytd,
+YTD_Sales__c: cus.sales_value_ytd,
+Account_Contact_Email__c: trimToNChars(cus.accts_email,50),
+Account_Contact_Mobile__c: trimToNChars(cus.accts_mobile_nbr,15),
+Account_Contact_Name__c: cus.accts_contact_name,
+Account_Contact_Phone__c: trimToNChars(cus.accts_phone_nbr,15),
+Total_Amount_Spent__c:cus.total_amount_spent,
+SMS_Flag__c : if (upper(cus.sms_flag) == "Y") 1 else 0,
+Auto_Price_Type__c: cus.auto_price_type,
+Payment_Days__c : cus.payment_days,
+Discount_Days__c: cus.discount_days,
+Credit_Terms_Message__c: cus.terms_message,
+Document_Method__c: cus.forms_method,
+Document_Prefix__c: cus.forms_prefix,
+Parent_Account__c: cus.parent_account,
+Currency_Code__c: cus.currency_code,
+Country_Code__c:cus.country_code,
+ABN__c: cus.abn_vat_nbr,
+Phone__c:cus.phone_nbr,
+Fax:cus.fax_nbr,
+Stock_Location__c:cus.stock_location,
+In_Active_Debtor__c : cus.inactive_flag
+})
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			<ee:transform doc:name="Transform Message" doc:id="27553290-a51c-48c6-9923-fd51ec6aea1a">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/csv separator="|",quote="\"",quoteValues=true,escape="\""
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			<salesforce:create-job-bulk-api-v2 doc:name="Create job bulk api v 2" doc:id="01c3d74a-c058-46f8-8c60-8bd1c49f3101" config-ref="Salesforce_Config" objectType="Account" operation="upsert" readTimeoutUnit="DAYS" externalIdFieldName="Unique_Id__c" columnDelimiter="PIPE" />
+			<ee:transform doc:name="Transform Message" doc:id="1d53ba84-22c7-42ba-848f-f68fa8a19cd8">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		</foreach>
+	</flow>
+
+	<flow name="GetCustomerScheduler15MinFlow(Every15MinutesToLoadAccounts)" doc:id="7fe62289-b151-4fb8-9896-a97cc2d1054f" >
+		<scheduler doc:name="Scheduler" doc:id="c1f9d717-63f0-4633-a62a-a7f54fda0929" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="15" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</scheduler>
+		<!-- [STUDIO:"Listener"]<http:listener doc:name="Listener" doc:id="a5a75fc0-b7fe-4abe-a950-5e1211c3f129" config-ref="HTTP_Listener_config" path="/getCustomerDaily"/> [STUDIO] -->
+		<ee:transform doc:name="Transform Message" doc:id="f59e01d9-300d-4aea-9e7f-7acd34f49d67" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var dateFrom = now() as DateTime -  |PT15M|
+var dateTo = now() as DateTime
+---
+{
+    dateFrom: dateFrom as String { format: "yyyy-MM-dd'T'HH:mm:ss" },
+    dateTo: dateTo as String { format: "yyyy-MM-dd'T'HH:mm:ss" }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="GET" doc:name="Get Customers Request" doc:id="db2f534e-18cf-49f2-9314-8bb9872f2bf0" config-ref="HTTP_Request_configuration" path="/getcustomersv2?searchtype=dates&amp;datefrom={dateFrom}&amp;dateto={dateTo}" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"dateFrom" : payload.dateFrom,
+	"dateTo" : payload.dateTo
+}]]]></http:uri-params>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"dateFrom" : payload.dateFrom,
+	"dateTo" : payload.dateTo
+}]]]></http:query-params>
+		</http:request>
+		<set-variable value="#[payload.customers?]" doc:name="Customer Update Exists" doc:id="49470134-154a-4b63-8d81-e705cf8c2937" variableName="hasCustomerList"/>
+		<choice doc:name="HasCustomerExists" doc:id="e5515c01-2c96-4330-b656-2dc64dec8e2d" >
+			<when expression="#[vars.hasCustomerList]">
+				<logger level="INFO" doc:name="Logger" doc:id="6b68dd01-0082-4d17-a52c-ec2bb2e26ad6" message="Customer - Record Found"/>
+				<ee:transform doc:name="Transform Message" doc:id="e98a491d-fc5d-41ed-9926-192214e71a98">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+// Function to trim any field to 15 characters
+fun trimToNChars(value,limit) = 
+ if (value != null and sizeOf(value) > limit) 
+ value[0 to (limit-1)] 
+ else 
+ value
+---
+payload.customers map((cus, index) ->
+{
+Profile__c: cus.profile,
+Type: cus.account_type,
+Aged_Balance_1__c: cus.aged_balance_1,
+Aged_Balance_2__c: cus.aged_balance_2,
+Aged_Balance_3__c: cus.aged_balance_3,
+Aged_Balance_4__c: cus.aged_balance_4,
+Aged_Balance_5__c: cus.aged_balance_5,
+Alpha__c: cus.customer_alpha,
+Area_Code__c: cus.area_code,
+Credit_Limit__c: cus.credit_limit,
+Current_Balance__c: cus.current_balance,
+Customer_Code__c: cus.customer_code,
+Customer_Type_Code__c: cus.customer_type_code,
+Customer_Type_Description__c: cus.customer_type_code,
+Date_Added__c: cus.date_added as Date,
+Debtor_Code__c: cus.customer_code,
+Debtor_Name__c: cus.customer_name,
+Delivery_Address_1__c: cus.delivery_address_1,
+Delivery_Address_2__c: cus.delivery_address_2,
+Delivery_Address_3__c: cus.delivery_address_3,
+Delivery_Address_4__c: cus.delivery_address_4,
+Delivery_Address_PostCode__c: cus.delivery_postcode,
+Delivery_Name__c: cus.delivery_name,
+Discount_Terms__c: cus.discount_terms,
+Future_Balance__c: cus.future_balance,
+Future_Margin_Percent__c: cus.pct_margin_fut,
+Future_Margin_Value__c: cus.margin_value_fut,
+Future_Sales__c: cus.sales_value_fut,
+General_Contact_Email__c: trimToNChars(cus.general_email,50),
+General_Contact_Mobile__c: trimToNChars(cus.general_mobile_nbr,15),
+General_Contact_Name__c: cus.general_contact,
+General_Contact_Phone__c: trimToNChars(cus.general_phone_nbr,15),
+Hold_Balance__c: cus.hold_balance,
+Invoice_Disc__c: cus.disc_pct,
+Last_Invoice_Date__c: cus.date_last_invoice,
+Last_Invoice_Value__c: cus.value_last_invoice,
+//Last_Order_Date__c: cus.date_last_order,
+Last_Order_Value__c: cus.value_last_order,
+Last_Receipt_Date__c: cus.date_last_receipt,
+Last_Receipt_Value__c: cus.value_last_receipt,
+LLY_Margin_Percent__c: cus.pct_margin_lly,
+LLY_Margin_Valu__c: cus.margin_value_lly,
+LLY_Sales__c: cus.sales_value_lly,
+LYR_Margin_Percent__c: cus.pct_margin_ytd,
+LYR_Margin_Value__c: cus.margin_value_lyr,
+LYR_Sales__c: cus.sales_value_lyr,
+Name: cus.customer_name,
+Orders_Balance__c: cus.orders_balance,
+Payment_Terms__c: cus.payment_terms,
+Period_Type__c: cus.period_type,
+Price_Code__c: cus.price_code,
+Price_Group__c: cus.area_code,
+PTD_Margin_Percent__c: cus.pct_margin_ptd,
+PTD_Margin_Value__c: cus.margin_value_ptd,
+PTD_Sales__c: cus.sales_value_ptd,
+Sales_Code__c: cus.sales_code,
+Sales_Contact_Email__c: trimToNChars(cus.sales_email,50),
+Sales_Contact_Mobile__c: trimToNChars(cus.sales_mobile_nbr,15),
+Sales_Contact_Name__c: cus.sales_contact_name,
+Sales_Contact_Phone__c: trimToNChars(cus.sales_phone_nbr,15),
+Sales_Description__c: cus.sales_code,
+Sales_Tax_Type__c: cus.sales_tax_type,
+Total_Balance__c: cus.total_balance,
+Unique_Id__c: cus.unique_id as String,
+YTD_Margin_Percent__c: cus.pct_margin_ytd,
+YTD_Margin_Value__c: cus.margin_value_ytd,
+YTD_Sales__c: cus.sales_value_ytd,
+Account_Contact_Email__c: trimToNChars(cus.accts_email,50),
+Account_Contact_Mobile__c: trimToNChars(cus.accts_mobile_nbr,15),
+Account_Contact_Name__c: cus.accts_contact_name,
+Account_Contact_Phone__c: trimToNChars(cus.accts_phone_nbr,15),
+Total_Amount_Spent__c:cus.total_amount_spent,
+SMS_Flag__c : if (upper(cus.sms_flag) == "Y") 1 else 0,
+Auto_Price_Type__c: cus.auto_price_type,
+Payment_Days__c : cus.payment_days,
+Discount_Days__c: cus.discount_days,
+Credit_Terms_Message__c: cus.terms_message,
+Document_Method__c: cus.forms_method,
+Document_Prefix__c: cus.forms_prefix,
+Parent_Account__c: cus.parent_account,
+Currency_Code__c: cus.currency_code,
+Country_Code__c:cus.country_code,
+ABN__c: cus.abn_vat_nbr,
+Phone__c:cus.phone_nbr,
+Fax:cus.fax_nbr,
+Stock_Location__c:cus.stock_location,
+In_Active_Debtor__c : cus.inactive_flag
+})
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<ee:transform doc:name="Transform Message1" doc:id="9aea466e-56ff-4606-bcac-bdb031199b8f" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv separator="|",quote="\"",quoteValues=true,escape="\""
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<salesforce:create-job-bulk-api-v2 objectType="Account" operation="upsert" doc:name="Create job bulk api v " doc:id="573e8d18-4172-427c-8248-9892af31589f" config-ref="Salesforce_Config" columnDelimiter="PIPE" externalIdFieldName="Unique_Id__c" readTimeoutUnit="DAYS" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="97bc5983-ad2b-44d0-88a6-f6cd4a5c7d03" message="Customer - No Record Found"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="8f4d9a43-f014-4d57-97ea-ccce782520e2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="GetCustomerByCustomerCode(RefreshFromAccountPage)" doc:id="2cc3211a-2840-4930-a864-c63ae59d2121" >
+		<http:listener doc:name="Listener" doc:id="fd77e270-d6e1-412f-8a6c-8866323c39dd" config-ref="HTTP_Listener_config" path="/getCustomerByCode"/>
+		<http:request method="GET" doc:name="Get Customers Request" doc:id="b1678958-8888-4287-bd1c-8ba4f70be992" config-ref="HTTP_Request_configuration" path="/getcustomersv2?searchtype=customer&amp;customercode={customercode}" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"customercode" : attributes.queryParams.customercode
+}]]]></http:uri-params>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"customercode" : attributes.queryParams.customercode
+}]]]></http:query-params>
+		</http:request>
+		<set-variable value="#[payload.customers?]" doc:name="Customer Update Exists" doc:id="e61b5164-4270-4113-836f-7c4ffa5f56e9" variableName="hasCustomerList"/>
+		<choice doc:name="HasCustomerExists" doc:id="011bc11f-8d3b-4585-aacd-7a188104aeb4" >
+			<when expression="#[vars.hasCustomerList]">
+				<logger level="INFO" doc:name="Logger" doc:id="8c53abc4-3561-4ccf-b097-c517823a2340" message="Customer - Record Found"/>
+				<ee:transform doc:name="Transform Message" doc:id="a3857a2b-e35d-4b0d-acd8-52d9ec832763">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+// Function to trim any field to 15 characters
+fun trimToNChars(value,limit) = 
+ if (value != null and sizeOf(value) > limit) 
+ value[0 to (limit-1)] 
+ else 
+ value
+---
+payload.customers map((cus, index) ->
+{
+Profile__c: cus.profile,
+Type: cus.account_type,
+Aged_Balance_1__c: cus.aged_balance_1,
+Aged_Balance_2__c: cus.aged_balance_2,
+Aged_Balance_3__c: cus.aged_balance_3,
+Aged_Balance_4__c: cus.aged_balance_4,
+Aged_Balance_5__c: cus.aged_balance_5,
+Alpha__c: cus.customer_alpha,
+Area_Code__c: cus.area_code,
+Credit_Limit__c: cus.credit_limit,
+Current_Balance__c: cus.current_balance,
+Customer_Code__c: cus.customer_code,
+Customer_Type_Code__c: cus.customer_type_code,
+Customer_Type_Description__c: cus.customer_type_code,
+Date_Added__c: cus.date_added as Date,
+Debtor_Code__c: cus.customer_code,
+Debtor_Name__c: cus.customer_name,
+Delivery_Address_1__c: cus.delivery_address_1,
+Delivery_Address_2__c: cus.delivery_address_2,
+Delivery_Address_3__c: cus.delivery_address_3,
+Delivery_Address_4__c: cus.delivery_address_4,
+Delivery_Address_PostCode__c: cus.delivery_postcode,
+Delivery_Name__c: cus.delivery_name,
+Discount_Terms__c: cus.discount_terms,
+Future_Balance__c: cus.future_balance,
+Future_Margin_Percent__c: cus.pct_margin_fut,
+Future_Margin_Value__c: cus.margin_value_fut,
+Future_Sales__c: cus.sales_value_fut,
+General_Contact_Email__c: trimToNChars(cus.general_email,50),
+General_Contact_Mobile__c: trimToNChars(cus.general_mobile_nbr,15),
+General_Contact_Name__c: cus.general_contact,
+General_Contact_Phone__c: trimToNChars(cus.general_phone_nbr,15),
+Hold_Balance__c: cus.hold_balance,
+Invoice_Disc__c: cus.disc_pct,
+Last_Invoice_Date__c: cus.date_last_invoice,
+Last_Invoice_Value__c: cus.value_last_invoice,
+//Last_Order_Date__c: cus.date_last_order,
+Last_Order_Value__c: cus.value_last_order,
+Last_Receipt_Date__c: cus.date_last_receipt,
+Last_Receipt_Value__c: cus.value_last_receipt,
+LLY_Margin_Percent__c: cus.pct_margin_lly,
+LLY_Margin_Valu__c: cus.margin_value_lly,
+LLY_Sales__c: cus.sales_value_lly,
+LYR_Margin_Percent__c: cus.pct_margin_ytd,
+LYR_Margin_Value__c: cus.margin_value_lyr,
+LYR_Sales__c: cus.sales_value_lyr,
+Name: cus.customer_name,
+Orders_Balance__c: cus.orders_balance,
+Payment_Terms__c: cus.payment_terms,
+Period_Type__c: cus.period_type,
+Price_Code__c: cus.price_code,
+Price_Group__c: cus.area_code,
+PTD_Margin_Percent__c: cus.pct_margin_ptd,
+PTD_Margin_Value__c: cus.margin_value_ptd,
+PTD_Sales__c: cus.sales_value_ptd,
+Sales_Code__c: cus.sales_code,
+Sales_Contact_Email__c: trimToNChars(cus.sales_email,50),
+Sales_Contact_Mobile__c: trimToNChars(cus.sales_mobile_nbr,15),
+Sales_Contact_Name__c: cus.sales_contact_name,
+Sales_Contact_Phone__c: trimToNChars(cus.sales_phone_nbr,15),
+Sales_Description__c: cus.sales_code,
+Sales_Tax_Type__c: cus.sales_tax_type,
+Total_Balance__c: cus.total_balance,
+Unique_Id__c: cus.unique_id as String,
+YTD_Margin_Percent__c: cus.pct_margin_ytd,
+YTD_Margin_Value__c: cus.margin_value_ytd,
+YTD_Sales__c: cus.sales_value_ytd,
+Account_Contact_Email__c: trimToNChars(cus.accts_email,50),
+Account_Contact_Mobile__c: trimToNChars(cus.accts_mobile_nbr,15),
+Account_Contact_Name__c: cus.accts_contact_name,
+Account_Contact_Phone__c: trimToNChars(cus.accts_phone_nbr,15),
+Total_Amount_Spent__c:cus.total_amount_spent,
+SMS_Flag__c : if (upper(cus.sms_flag) == "Y") 1 else 0,
+Auto_Price_Type__c: cus.auto_price_type,
+Payment_Days__c : cus.payment_days,
+Discount_Days__c: cus.discount_days,
+Credit_Terms_Message__c: cus.terms_message,
+Document_Method__c: cus.forms_method,
+Document_Prefix__c: cus.forms_prefix,
+Parent_Account__c: cus.parent_account,
+Currency_Code__c: cus.currency_code,
+Country_Code__c:cus.country_code,
+ABN__c: cus.abn_vat_nbr,
+Phone__c:cus.phone_nbr,
+Fax:cus.fax_nbr,
+Stock_Location__c:cus.stock_location,
+In_Active_Debtor__c : cus.inactive_flag
+})
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<ee:transform doc:name="Transform Message1" doc:id="9c8284f6-0fc9-476c-9a47-9d9cd8a76070" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv separator="|",quote="\"",quoteValues=true,escape="\""
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<salesforce:create-job-bulk-api-v2 objectType="Account" operation="upsert" doc:name="Create job bulk api v " doc:id="3dd4e899-5ed8-4719-8e78-3448e3f7b935" config-ref="Salesforce_Config" columnDelimiter="PIPE" externalIdFieldName="Unique_Id__c" readTimeoutUnit="DAYS" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="f6911c2a-17fa-4748-833c-01dfeca61dc1" message="Customer - No Record Found"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="efe27d89-d4b7-4e96-bc63-b0245e464d8f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="GetProductsDataLoadFlow(BulkDataUpload)" doc:id="0d8f01d0-e8f9-4580-bb48-f897d749de8a" >
+		<http:listener doc:name="Listener" doc:id="b98217ad-3c5a-454d-a5ee-3ac3439dde8e" config-ref="HTTP_Listener_config" path="/getProducts"/>
+		<http:request method="GET" doc:name="Get Products Request" doc:id="90586358-418e-432d-95ce-0e79798631bf" config-ref="HTTP_Request_configuration" path="/getproductsv2?searchtype=range&amp;offset=0&amp;maxRows=1">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="1cb7dc55-883e-4431-bafe-cadd8b38e7dc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.products[0].total_available_rows]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="9dbf265c-bae9-4872-8aad-6118d50ec56a" variableName="TotalRecordSize" />
+		<foreach doc:name="For Each" doc:id="e62b00b1-21dc-4b5d-a5d4-effd4ea80b45" collection="#[1 to (round(vars.TotalRecordSize as Number /5000) + 1)]">
+			<set-variable value="#[(vars.counter - 1) * 5000]" doc:name="Set Variable" doc:id="0b8f138a-2f7b-45b7-97c3-7ddc5aa0644e" variableName="offSet" />
+			<logger level="INFO" doc:name="Logger" doc:id="a6b77553-b3b0-447d-adf2-21bc5897afb2" message="#[vars.offSet]"/>
+			<http:request method="GET" doc:name="Get Products Request" doc:id="5ae43c28-d65e-4452-9bbc-f1456ae02dc2" config-ref="HTTP_Request_configuration" path="/getproductsv2?searchtype=range&amp;offset={offSet}&amp;maxRows=5000" responseTimeout="60000">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MzY4OTg3MzEsImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDUyNDY3NTMxfQ.-CGkDYPWw8q-Uda4SzLAdzldpn83L3N4D4EovIoGFEc"
+}]]]></http:headers>
+				<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"offSet" : vars.offSet
+}]]]></http:uri-params>
+				<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"offSet" : vars.offSet
+}]]]></http:query-params>
+		</http:request>
+			<ee:transform doc:name="Transform Message" doc:id="11632700-dbfa-4b7f-8051-1e4fa3c42579">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+	payload.products map {
+        Name: $.stock_description_1,
+        Unique_Id__c: $.unique_id as String,
+        ProductCode:$.stock_code,
+        Bar_Stock_Code__c:$.bar_stock_code,
+        Alpha__c:$.stock_alpha,
+        Sub_Category__c:$.sub_category,
+        Description:$.stock_description_1,
+        Sales_Tax__c:$.sales_tax_rate,
+        Import_Duty__c:$.import_duty_pct,
+        Unit_Of_Measure__c:$.unit_of_measure,
+        Bin_Location__c:$.bin_location,
+        Creditor_Code__c:$.creditor_code,
+        APRIL_20__c:$.sell_price_6 as String default null,
+ Sell_Price_6__c:$.sell_price_1 as String default null,
+ APR_24__c:$.sell_price_2 as String default null,
+ AUG_22__c:$.sell_price_3 as String default null,
+ FEB_22__c:$.sell_price_4 as String default null,
+ APRIL_21__c:$.sell_price_5 as String default null,
+		Unit_Volume__c:$.unit_volume,
+		Unit_Weight__c: $.unit_weight,
+		Keep_Balances__c: $.keep_balances,
+		Sales_Conversion_Unit__c:$.converted_unit,
+		Reporting_Code__c:$.reporting_code,
+		URL_Address__c:$.url_address,	
+		Buyer_Code__c:$.buyer_code,
+		IsActive: true,
+		Track_Serial_Nbrs__c:$.serial_flag,
+		Receipts_Conv_Factor__c:$.convert_factor,
+		Receipts_Conv_Unit__c:$.converted_unit,
+		Alternate_Code__c:$.alternate_stock ,
+		Supplier_Stock_Code__c:$.supplier_type_code,
+		Category__c:$.stock_category,
+		Obsolete_Stock__c:$.obsolete_stock,
+		Backorder_Qty__c : $.backorder_qty,
+		Available_Qty__c  : $.available_qty
+    }
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			<ee:transform doc:name="Transform Message" doc:id="fec6e4cc-6aab-43e6-9845-2c023af9cc67" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv separator="|",quote="\"",quoteValues=true,escape="\""
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<salesforce:create-job-bulk-api-v2 objectType="Product2" operation="upsert" doc:name="Create job bulk api v 2" doc:id="62545107-4cc7-447f-af4b-a74c42ddcd25" config-ref="Salesforce_Config" externalIdFieldName="Unique_Id__c" columnDelimiter="PIPE"/>
+			<ee:transform doc:name="Transform Message3" doc:id="e5f2f9c6-113d-493f-9915-35a49b5deb59">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</foreach>
+	</flow>
+	
+	<flow name="GetProductSchedulerDailyFlow(PullDataDaily)" doc:id="648d4ba1-8063-4002-95f2-31d1468e53fd" >
+		<scheduler doc:name="Scheduler" doc:id="0e501c0a-9986-4bd6-9874-a85465c1df69" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="1" timeUnit="DAYS"/>
+			</scheduling-strategy>
+		</scheduler>
+		<ee:transform doc:name="Transform Message" doc:id="27467d49-71c8-4676-aa8a-9fa7c3dc6a5b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var dateFrom = now() as DateTime -  |P1D|
+var dateTo = now() as DateTime
+---
+{
+    dateFrom: dateFrom as String { format: "yyyy-MM-dd'T'HH:mm:ss" },
+    dateTo: dateTo as String { format: "yyyy-MM-dd'T'HH:mm:ss" }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="GET" doc:name="Get Products Request" doc:id="1b5ea737-0a08-4702-8065-3f60f8b7cf3d" config-ref="HTTP_Request_configuration" path="/getproductsv2?searchtype=dates&amp;datefrom={dateFrom}&amp;dateto={dateTo}" responseTimeout="60000">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MzY4OTg3MzEsImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDUyNDY3NTMxfQ.-CGkDYPWw8q-Uda4SzLAdzldpn83L3N4D4EovIoGFEc"
+}]]]></http:headers>
+				<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"dateFrom" : payload.dateFrom,
+	"dateTo" : payload.dateTo
+}]]]></http:uri-params>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"dateFrom" : payload.dateFrom,
+	"dateTo" : payload.dateTo
+}]]]></http:query-params>
+		</http:request>
+		<set-variable value="#[payload.products?]" doc:name="HasProductsExists" doc:id="5b33e08d-37e7-497e-97da-3a8596dea89a" variableName="hasProducts"/>
+		<choice doc:name="Choice" doc:id="231160b5-37d8-40ec-932e-11771790c259" >
+			<when expression="#[vars.hasProducts]">
+				<ee:transform doc:name="Transform Message" doc:id="de03f47b-c7b2-415d-8784-e6d8dfff7283">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+	payload.products map {
+        Name: $.stock_description_1,
+        Unique_Id__c: $.unique_id as String,
+        ProductCode:$.stock_code,
+        Bar_Stock_Code__c:$.bar_stock_code,
+        Alpha__c:$.stock_alpha,
+        Sub_Category__c:$.sub_category,
+        Description:$.stock_description_1,
+        Sales_Tax__c:$.sales_tax_rate,
+        Import_Duty__c:$.import_duty_pct,
+        Unit_Of_Measure__c:$.unit_of_measure,
+        Bin_Location__c:$.bin_location,
+        Creditor_Code__c:$.creditor_code,
+        APRIL_20__c:$.sell_price_6 as String default null,
+ Sell_Price_6__c:$.sell_price_1 as String default null,
+ APR_24__c:$.sell_price_2 as String default null,
+ AUG_22__c:$.sell_price_3 as String default null,
+ FEB_22__c:$.sell_price_4 as String default null,
+ APRIL_21__c:$.sell_price_5 as String default null,
+		Unit_Volume__c:$.unit_volume,
+		Unit_Weight__c: $.unit_weight,
+		Keep_Balances__c: $.keep_balances,
+		Sales_Conversion_Unit__c:$.converted_unit,
+		Reporting_Code__c:$.reporting_code,
+		URL_Address__c:$.url_address,	
+		Buyer_Code__c:$.buyer_code,
+		IsActive: true,
+		Track_Serial_Nbrs__c:$.serial_flag,
+		Receipts_Conv_Factor__c:$.convert_factor,
+		Receipts_Conv_Unit__c:$.converted_unit,
+		Alternate_Code__c:$.alternate_stock ,
+		Supplier_Stock_Code__c:$.supplier_type_code,
+		Category__c:$.stock_category,
+		Obsolete_Stock__c:$.obsolete_stock,
+		Backorder_Qty__c : $.backorder_qty,
+		Available_Qty__c  : $.available_qty
+    }
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<ee:transform doc:name="Transform Message" doc:id="908c771e-f937-4c5e-afbb-3dcc0c82c972">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/csv separator="|",quote="\"",quoteValues=true,escape="\""
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+				<salesforce:create-job-bulk-api-v2 objectType="Product2" operation="upsert" doc:name="Create job bulk api v 2" doc:id="c72447a1-655d-4104-bf6a-e6cfcbad40b3" config-ref="Salesforce_Config" externalIdFieldName="Unique_Id__c" columnDelimiter="PIPE" />
+				<logger level="INFO" doc:name="Logger" doc:id="584bf568-65ff-424c-bde3-ab5a88eb61ca" message="Products - Records Found"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="57afb637-6ab1-43c8-af3d-0af2e57130c1" message="Products -  No Record Found"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message3" doc:id="4de607de-12f8-49fe-a326-a851b0aad5ab">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+	</flow>
+	
+	<flow name="GetProductByStockCode(RefreshProductFromProductPage)" doc:id="d2addd90-7ad9-4e0b-bfbf-b89ee6d31824" >
+		<http:listener doc:name="Listener" doc:id="6d4e4911-0165-48b3-8fcf-7f4cd24c7a57" config-ref="HTTP_Listener_config" path="/getProductByStockCode"/>
+		<http:request method="GET" doc:name="Get Products Request" doc:id="7e48d499-6354-40ed-b03d-aac32455e322" config-ref="HTTP_Request_configuration" path="/getproductsv2?searchtype=product&amp;productcode={productcode}" responseTimeout="60000">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MzY4OTg3MzEsImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDUyNDY3NTMxfQ.-CGkDYPWw8q-Uda4SzLAdzldpn83L3N4D4EovIoGFEc"
+}]]]></http:headers>
+				<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"productcode" : attributes.queryParams.productcode
+}]]]></http:uri-params>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"productcode" : attributes.queryParams.productcode
+}]]]></http:query-params>
+		</http:request>
+		<set-variable value="#[payload.products?]" doc:name="HasProductsExists" doc:id="b3af43a8-6c48-4029-ba22-2bf51083315b" variableName="hasProducts"/>
+		<choice doc:name="Choice" doc:id="76c68b4c-7cba-43ad-8dc8-21b2fdc5274d" >
+			<when expression="#[vars.hasProducts]">
+				<ee:transform doc:name="Transform Message" doc:id="db169366-72e2-4c59-892b-adbd7f378367">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+	payload.products map {
+        Name: $.stock_description_1,
+        Unique_Id__c: $.unique_id as String,
+        ProductCode:$.stock_code,
+        Bar_Stock_Code__c:$.bar_stock_code,
+        Alpha__c:$.stock_alpha,
+        Sub_Category__c:$.sub_category,
+        Description:$.stock_description_1,
+        Sales_Tax__c:$.sales_tax_rate,
+        Import_Duty__c:$.import_duty_pct,
+        Unit_Of_Measure__c:$.unit_of_measure,
+        Bin_Location__c:$.bin_location,
+        Creditor_Code__c:$.creditor_code,
+        APRIL_20__c:$.sell_price_6 as String default null,
+ Sell_Price_6__c:$.sell_price_1 as String default null,
+ APR_24__c:$.sell_price_2 as String default null,
+ AUG_22__c:$.sell_price_3 as String default null,
+ FEB_22__c:$.sell_price_4 as String default null,
+ APRIL_21__c:$.sell_price_5 as String default null,
+		Unit_Volume__c:$.unit_volume,
+		Unit_Weight__c: $.unit_weight,
+		Keep_Balances__c: $.keep_balances,
+		Sales_Conversion_Unit__c:$.converted_unit,
+		Reporting_Code__c:$.reporting_code,
+		URL_Address__c:$.url_address,	
+		Buyer_Code__c:$.buyer_code,
+		IsActive: true,
+		Track_Serial_Nbrs__c:$.serial_flag,
+		Receipts_Conv_Factor__c:$.convert_factor,
+		Receipts_Conv_Unit__c:$.converted_unit,
+		Alternate_Code__c:$.alternate_stock ,
+		Supplier_Stock_Code__c:$.supplier_type_code,
+		Category__c:$.stock_category,
+		Obsolete_Stock__c:$.obsolete_stock,
+		Backorder_Qty__c : $.backorder_qty,
+		Available_Qty__c  : $.available_qty
+    }
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<ee:transform doc:name="Transform Message" doc:id="b477ba22-70f4-4aac-84c5-f5be9b9bdee4">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/csv separator="|",quote="\"",quoteValues=true,escape="\""
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+				<salesforce:create-job-bulk-api-v2 objectType="Product2" operation="upsert" doc:name="Create job bulk api v 2" doc:id="80ade488-4bea-4c39-8975-640014af21f0" config-ref="Salesforce_Config" externalIdFieldName="Unique_Id__c" columnDelimiter="PIPE" />
+				<logger level="INFO" doc:name="Logger" doc:id="d9e880b5-ae4c-4374-9810-ab33cf87e9e6" message="Products - Records Found"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="1d827315-222a-40a5-837a-777f4b7cb04d" message="Products -  No Record Found"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message3" doc:id="461a2f7a-6861-4f39-ba30-d2f605e2ee8d">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+	</flow>
+	
+	<flow name="GetOrdersDataLoadFlow(BulkDataUploads)" doc:id="8cd32c1b-1a91-489d-bdb5-12bce76479b4" >
+		<http:listener doc:name="Get Orders Listener" doc:id="83de80cc-b174-4bc2-b475-7626200d4148" config-ref="HTTP_Listener_config" path="/getOrders" />
+		<http:request method="GET" doc:name="Get Order Request" doc:id="f1b87156-e721-48b8-b93c-9a5b263ac254" config-ref="HTTP_Request_configuration" path="/getordersv2?searchtype=range&amp;offSet=0&amp;maxRows=1&amp;format=headers">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="9a8d8fe7-8604-435f-8389-692a3111d5f8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.order_headers[0].total_available_rows]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="0e54fffd-e68f-47fd-aac1-eb972e4cf184" variableName="TotalRecordSize"/>
+		<foreach doc:name="For Each" doc:id="448ccb69-9276-4807-8931-1c82ca7d5e2f" collection="#[1 to (round(vars.TotalRecordSize as Number /5000) + 1)]">
+			<set-variable value="#[(vars.counter-1) * 5000]" doc:name="Set Variable" doc:id="f5e6fdad-83cd-44de-881f-9bad3305618a" variableName="offSet"/>
+			<logger level="INFO" doc:name="Logger" doc:id="8c234720-bd1c-4c63-9b88-1eabbf913b34" message="#[vars.offSet]"/>
+			<http:request method="GET" doc:name="Get Orders Request" doc:id="ea088729-865c-490c-afe2-ed089f07e2bb" config-ref="HTTP_Request_configuration" path="/getordersv2?searchtype=range&amp;offSet={offSet}&amp;maxRows=5000&amp;format=headers" responseTimeout="120000">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+				<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"offSet" : vars.offSet
+}]]]></http:uri-params>
+				<http:query-params><![CDATA[#[output application/java
+---
+{
+	"offSet" : vars.offSet
+}]]]></http:query-params>
+		</http:request>
+			<ee:transform doc:name="Transform Message1" doc:id="00924059-7a73-4a7f-b942-4d7bb0f7d6cd">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.order_headers map((order,index)->
+{
+ Customer_Code__c:order.customer_code,
+ Debtor_Code__c : order.customer_code,
+ Unique_Id__c: order.unique_id as String,
+ EffectiveDate: order.order_date as Date,
+ Delivery_Date__c:order.delivery_date as Date,
+ Despatch_Date__c: order.despatch_date as Date default null,
+ Order_Code__c: order.order_code,
+ OrderReferenceNumber:order.reference_nbr,
+ Price_Code__c:order.price_code,
+ Contact_Name__c:order.contact_name,
+ Phone_Number__c:order.phone_nbr,
+ Email_Address__c:order.email_address,
+ Customer_Type__c:order.customer_type_code,
+ Status:if (upper(order.create_invoice) == "Y") "Completed" else "Draft",
+ Sales_Code__c:order.sales_code,
+ Pay_By_Method__c:order.pay_by_method,
+ Customer_Order_Number__c: order.customer_order,
+ Run_Code__c:order.run_code,
+ Tax_Certificate__c:order.tax_certificate,
+ Delivery_Name__c:order.delivery_name,
+ Address_1__c:order.delivery_note_1,
+ Address_2__c:order.delivery_note_2,
+ Address_3__c:order.delivery_note_3,
+ Address_4__c : order.delivery_note_4,
+ Address_Code__c:order.address_code,
+ Postcode__c:order.delivery_postcode,
+ Bar_Postcode__c:order.delivery_post_barcode,
+ Cancel_By__c:order.cancel_by,
+Despatch_Notes__c: order.despatch_note_1,
+Despatch_Notes_2__c: order.despatch_note_2,
+Tax_Code__c:order.sales_tax_type,
+Only_Ship_in_Full__c:order.ship_in_full,
+Currency_Code__c:order.currency_code,
+Order_Discount__c:order.disc_pct,
+The_last_receipt_invoice_date__c:order.payment_date,
+Currency_Rate__c:order.currency_rate,
+Consignment_Note_Nbr__c:order.con_note_nbr,
+Invoice_Created__c:if (upper(order.create_invoice) == "Y") 1 else 0,
+Document_Prefix__c:order.forms_prefix,
+Fax_Number__c : order.fax_nbr,
+Price_Group__c: order.area_code,
+Description: order.description_1 as String default "" ++ " " ++ order.description_2 as String default "" ++ " " ++ order.description_3 as String default ""
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			<ee:transform doc:name="Transform Message" doc:id="a3016481-da91-4af1-801a-71dd2eea5282">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/csv separator="|",quote="\"",quoteValues=true,escape="\""
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			<salesforce:create-job-bulk-api-v2 objectType="Order" operation="upsert" doc:name="Create job bulk api v 2" doc:id="5a617ef4-4ec6-4b76-a6ab-a2466c278d67" config-ref="Salesforce_Config" externalIdFieldName="Unique_Id__c" columnDelimiter="PIPE"/>
+			<ee:transform doc:name="Transform Message" doc:id="9091c676-eabe-414d-9b21-ad0392f10c03">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		</foreach>
+	</flow>
+	<flow name="GetOrderScheduler15MinFlow(PullOrdersEvery15Minutes)" doc:id="46e85c5f-4be8-4c91-ab42-f6487c6e939c" >
+		<scheduler doc:name="Scheduler" doc:id="24880062-5c73-4ebb-ab94-5bd0c82a99a1" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="15" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</scheduler>
+		<ee:transform doc:name="Transform Message" doc:id="4b3aea79-5a2b-4b33-9427-2dc7121372f2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var dateFrom = now() as DateTime -  |PT15M|
+var dateTo = now() as DateTime
+---
+{
+    dateFrom: dateFrom as String { format: "yyyy-MM-dd'T'HH:mm:ss" },
+    dateTo: dateTo as String { format: "yyyy-MM-dd'T'HH:mm:ss" }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="8c7f44ab-c0de-4804-bcda-47dc76f2fcfa" message="Order - #[payload]"/>
+		<http:request method="GET" doc:name="Get Orders Request" doc:id="32d664bb-7bbb-49cc-b403-9b8941de2ee0" config-ref="HTTP_Request_configuration" path="/getordersv2?format=headers&amp;searchtype=dates&amp;datefrom={dateFrom}&amp;dateto={dateTo}" responseTimeout="120000">
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"dateFrom" : payload.dateFrom,
+	"dateTo" : payload.dateTo
+}]]]></http:uri-params>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"dateFrom" : payload.dateFrom,
+	"dateTo" : payload.dateTo
+}]]]></http:query-params>
+		</http:request>
+		<set-variable value='#[payload."order_headers"?]' doc:name="Has Order Exists" doc:id="57786458-50fc-4a52-b3ce-1baf62eb4175" variableName="hasOrders"/>
+		<choice doc:name="Decision" doc:id="d7540fd2-a272-475f-a679-dbd02214454a" >
+			<when expression="#[vars.hasOrders]">
+				<ee:transform doc:name="Transform Message1" doc:id="12aa6a46-bec3-4638-9e4a-f98c39c25f4d">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.order_headers map((order,index)->
+{
+ Customer_Code__c:order.customer_code,
+ Debtor_Code__c : order.customer_code,
+ Unique_Id__c: order.unique_id as String,
+ EffectiveDate: order.order_date as Date,
+ Delivery_Date__c:order.delivery_date as Date,
+ Despatch_Date__c: order.despatch_date as Date default null,
+ Order_Code__c: order.order_code,
+ OrderReferenceNumber:order.reference_nbr,
+ Price_Code__c:order.price_code,
+ Contact_Name__c:order.contact_name,
+ Phone_Number__c:order.phone_nbr,
+ Email_Address__c:order.email_address,
+ Customer_Type__c:order.customer_type_code,
+ Status:if (upper(order.create_invoice) == "Y") "Completed" else "Draft",
+ Sales_Code__c:order.sales_code,
+ Pay_By_Method__c:order.pay_by_method,
+ Customer_Order_Number__c: order.customer_order,
+ Run_Code__c:order.run_code,
+ Tax_Certificate__c:order.tax_certificate,
+ Delivery_Name__c:order.delivery_name,
+ Address_1__c:order.delivery_note_1,
+ Address_2__c:order.delivery_note_2,
+ Address_3__c:order.delivery_note_3,
+ Address_4__c : order.delivery_note_4,
+ Address_Code__c:order.address_code,
+ Postcode__c:order.delivery_postcode,
+ Bar_Postcode__c:order.delivery_post_barcode,
+ Cancel_By__c:order.cancel_by,
+Despatch_Notes__c: order.despatch_note_1,
+Despatch_Notes_2__c: order.despatch_note_2,
+Tax_Code__c:order.sales_tax_type,
+Only_Ship_in_Full__c:order.ship_in_full,
+Currency_Code__c:order.currency_code,
+Order_Discount__c:order.disc_pct,
+The_last_receipt_invoice_date__c:order.payment_date,
+Currency_Rate__c:order.currency_rate,
+Consignment_Note_Nbr__c:order.con_note_nbr,
+Invoice_Created__c:if (upper(order.create_invoice) == "Y") 1 else 0,
+Document_Prefix__c:order.forms_prefix,
+Fax_Number__c : order.fax_nbr,
+Price_Group__c: order.area_code,
+Description: order.description_1 as String default "" ++ " " ++ order.description_2 as String default "" ++ " " ++ order.description_3 as String default ""
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="916892a9-cf24-4d84-a094-139afedb52c1" message='Orders - Record Found #[sizeOf(payload)]' />
+				<ee:transform doc:name="Transform Message" doc:id="055b4939-c429-4ee3-8999-d92a870c5054">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/csv separator="|",quote="\"",quoteValues=true,escape="\""
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<salesforce:create-job-bulk-api-v2 objectType="Order" operation="upsert" doc:name="Create job bulk api v " doc:id="8ac3a373-e323-49c7-aa7a-0f7cd2e39874" config-ref="Salesforce_Config" externalIdFieldName="Unique_Id__c" columnDelimiter="PIPE" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="ccd0198d-97a6-4850-80e4-cacf5595b5fb" message="Orders - No Record Found"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="152216b4-2353-42fe-aec1-5f9391ebe950">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="GetOrderByReferenceNumber(RefreshOrderFromOrderPage)" doc:id="f4255276-3b2c-47d4-9cd6-a2de673be09b" >
+		<http:listener doc:name="Listener" doc:id="e463a55d-9cba-44df-aeb2-4b2bd58d974d" config-ref="HTTP_Listener_config" path="/getOrderHeadersByReference"/>
+		<http:request method="GET" doc:name="Get Orders Request" doc:id="a003d883-c8fc-4e3d-8380-b286e43f65f1" config-ref="HTTP_Request_configuration" path="/getordersv2?format=headers&amp;searchtype=reference&amp;referencenbr={reference} " responseTimeout="120000">
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"reference" : attributes.queryParams.reference
+}]]]></http:uri-params>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"reference" : attributes.queryParams.reference
+}]]]></http:query-params>
+		</http:request>
+		<set-variable value='#[payload."order_headers"?]' doc:name="Has Order Exists" doc:id="38762524-9e0c-4d5d-88ea-9cc44f609913" variableName="hasOrders"/>
+		<choice doc:name="Decision" doc:id="ec5721f4-3902-4793-9490-4f260b19c27e" >
+			<when expression="#[vars.hasOrders]">
+				<ee:transform doc:name="Transform Message1" doc:id="f8458650-bd2a-4619-947d-98668d9a4e44">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.order_headers map((order,index)->
+{
+ Customer_Code__c:order.customer_code,
+ Debtor_Code__c : order.customer_code,
+ Unique_Id__c: order.unique_id as String,
+ EffectiveDate: order.order_date as Date,
+ Delivery_Date__c:order.delivery_date as Date,
+ Despatch_Date__c: order.despatch_date as Date default null,
+ Order_Code__c: order.order_code,
+ OrderReferenceNumber:order.reference_nbr,
+ Price_Code__c:order.price_code,
+ Contact_Name__c:order.contact_name,
+ Phone_Number__c:order.phone_nbr,
+ Email_Address__c:order.email_address,
+ Customer_Type__c:order.customer_type_code,
+ Status:if (upper(order.create_invoice) == "Y") "Completed" else "Draft",
+ Sales_Code__c:order.sales_code,
+ Pay_By_Method__c:order.pay_by_method,
+ Customer_Order_Number__c: order.customer_order,
+ Run_Code__c:order.run_code,
+ Tax_Certificate__c:order.tax_certificate,
+ Delivery_Name__c:order.delivery_name,
+ Address_1__c:order.delivery_note_1,
+ Address_2__c:order.delivery_note_2,
+ Address_3__c:order.delivery_note_3,
+ Address_4__c : order.delivery_note_4,
+ Address_Code__c:order.address_code,
+ Postcode__c:order.delivery_postcode,
+ Bar_Postcode__c:order.delivery_post_barcode,
+ Cancel_By__c:order.cancel_by,
+Despatch_Notes__c: order.despatch_note_1,
+Despatch_Notes_2__c: order.despatch_note_2,
+Tax_Code__c:order.sales_tax_type,
+Only_Ship_in_Full__c:order.ship_in_full,
+Currency_Code__c:order.currency_code,
+Order_Discount__c:order.disc_pct,
+The_last_receipt_invoice_date__c:order.payment_date,
+Currency_Rate__c:order.currency_rate,
+Consignment_Note_Nbr__c:order.con_note_nbr,
+Invoice_Created__c:if (upper(order.create_invoice) == "Y") 1 else 0,
+Document_Prefix__c:order.forms_prefix,
+Fax_Number__c : order.fax_nbr,
+Price_Group__c: order.area_code,
+Description: order.description_1 as String default "" ++ " " ++ order.description_2 as String default "" ++ " " ++ order.description_3 as String default ""
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="7a1c3185-06a9-4153-9df4-b64205e78ca7" message='Orders - Record Found #[sizeOf(payload)]' />
+				<ee:transform doc:name="Transform Message" doc:id="f5cd37c5-5d1f-4eb7-9b22-18861c4051a0">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/csv separator="|",quote="\"",quoteValues=true,escape="\""
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<salesforce:create-job-bulk-api-v2 objectType="Order" operation="upsert" doc:name="Create job bulk api v " doc:id="ab1081bd-6c65-4287-910b-1c39510c680b" config-ref="Salesforce_Config" externalIdFieldName="Unique_Id__c" columnDelimiter="PIPE" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="88bfdd5a-075e-4f89-bdd5-0712ce84a87d" message="Orders - No Record Found"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="bd96ba83-15cc-431f-936f-8ba43cdb91fa">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="GetOrderByCustomer(RefreshOrderFrom-CustomerPage)" doc:id="28b2f6fb-e336-417f-9e58-24ddece603d6" >
+		<http:listener doc:name="Listener" doc:id="f0d53658-c064-49bb-bd80-f9eb7d8133f1" config-ref="HTTP_Listener_config" path="/getOrderHeadersByCustomer"/>
+		<http:request method="GET" doc:name="Get Orders Request" doc:id="cfc73dc7-d03f-4d3a-ba1c-01e127828568" config-ref="HTTP_Request_configuration" path="/getordersv2?format=headers&amp;searchtype=customer&amp;customer={customer} " responseTimeout="120000">
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"customer" : attributes.queryParams.customer
+}]]]></http:uri-params>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"customer" : attributes.queryParams.customer
+}]]]></http:query-params>
+		</http:request>
+		<set-variable value='#[payload."order_headers"?]' doc:name="Has Order Exists" doc:id="e4f96e2b-61d4-48f3-ae07-8b8d08bce02e" variableName="hasOrders"/>
+		<choice doc:name="Decision" doc:id="d517535f-f168-41a0-899d-2b005f4ee00e" >
+			<when expression="#[vars.hasOrders]">
+				<ee:transform doc:name="Transform Message1" doc:id="07466731-a3ad-4d43-b625-eba595769818">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.order_headers map((order,index)->
+{
+ Customer_Code__c:order.customer_code,
+ Debtor_Code__c : order.customer_code,
+ Unique_Id__c: order.unique_id as String,
+ EffectiveDate: order.order_date as Date,
+ Delivery_Date__c:order.delivery_date as Date,
+ Despatch_Date__c: order.despatch_date as Date default null,
+ Order_Code__c: order.order_code,
+ OrderReferenceNumber:order.reference_nbr,
+ Price_Code__c:order.price_code,
+ Contact_Name__c:order.contact_name,
+ Phone_Number__c:order.phone_nbr,
+ Email_Address__c:order.email_address,
+ Customer_Type__c:order.customer_type_code,
+ Status:if (upper(order.create_invoice) == "Y") "Completed" else "Draft",
+ Sales_Code__c:order.sales_code,
+ Pay_By_Method__c:order.pay_by_method,
+ Customer_Order_Number__c: order.customer_order,
+ Run_Code__c:order.run_code,
+ Tax_Certificate__c:order.tax_certificate,
+ Delivery_Name__c:order.delivery_name,
+ Address_1__c:order.delivery_note_1,
+ Address_2__c:order.delivery_note_2,
+ Address_3__c:order.delivery_note_3,
+ Address_4__c : order.delivery_note_4,
+ Address_Code__c:order.address_code,
+ Postcode__c:order.delivery_postcode,
+ Bar_Postcode__c:order.delivery_post_barcode,
+ Cancel_By__c:order.cancel_by,
+Despatch_Notes__c: order.despatch_note_1,
+Despatch_Notes_2__c: order.despatch_note_2,
+Tax_Code__c:order.sales_tax_type,
+Only_Ship_in_Full__c:order.ship_in_full,
+Currency_Code__c:order.currency_code,
+Order_Discount__c:order.disc_pct,
+The_last_receipt_invoice_date__c:order.payment_date,
+Currency_Rate__c:order.currency_rate,
+Consignment_Note_Nbr__c:order.con_note_nbr,
+Invoice_Created__c:if (upper(order.create_invoice) == "Y") 1 else 0,
+Document_Prefix__c:order.forms_prefix,
+Fax_Number__c : order.fax_nbr,
+Price_Group__c: order.area_code,
+Description: order.description_1 as String default "" ++ " " ++ order.description_2 as String default "" ++ " " ++ order.description_3 as String default ""
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="7dc9fb35-53e4-467a-863c-fac3ec6501a8" message='Orders - Record Found #[sizeOf(payload)]' />
+				<ee:transform doc:name="Transform Message" doc:id="2c7d42bd-6026-4cee-a50a-200af793852d">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/csv separator="|",quote="\"",quoteValues=true,escape="\""
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<salesforce:create-job-bulk-api-v2 objectType="Order" operation="upsert" doc:name="Create job bulk api v " doc:id="4a4d51c0-c2c2-4e41-a5aa-eaf5226a1b18" config-ref="Salesforce_Config" externalIdFieldName="Unique_Id__c" columnDelimiter="PIPE" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="8053fe5c-6112-47fc-9c27-56b7a701f7a0" message="Orders - No Record Found"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="fc63bb3d-024c-4625-8147-4cccdbb73470">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="getOrderLineItems(BulkDataLoad)" doc:id="f468df72-d8e3-4ea5-b43c-5d70736bfeb4" >
+		<http:listener doc:name="Listener" doc:id="ba6f1e0b-96bf-45e6-bf76-b14ae9b06e7e" config-ref="HTTP_Listener_config" path="/getOrderLineItems"/>
+		<http:request method="GET" doc:name="Get Order LineItem Request" doc:id="bb7dc4d6-254a-4518-80eb-faa7dad614af" config-ref="HTTP_Request_configuration" path="/getordersv2?searchtype=range&amp;offSet=0&amp;maxRows=1&amp;format=lines" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="3a5553fa-4ffd-4269-8ac3-14f9035a9c8f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.order_lines[0].total_available_rows]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload]" doc:name="Total Record Size" doc:id="cc1dfbc0-27a0-4449-b97e-0c9677bec492" variableName="TotalRecordSize"/>
+		<foreach doc:name="For Each" doc:id="38e0bafc-7cf1-4044-9a88-2636c0c896c4" collection="#[1 to round((vars.TotalRecordSize-850000) as Number /5000)]">
+			<set-variable value="#[((vars.counter-1) * 5000) + 850000]" doc:name="Set Variable" doc:id="8649b884-0bba-4107-b076-10d718a6b040" variableName="offSet" />
+			<logger level="INFO" doc:name="Logger" doc:id="8fdd7fc0-ea34-488f-acfc-b83cabc98c06" message="#[vars.offSet]" />
+			<http:request method="GET" doc:name="Get Order LineItems Request" doc:id="6929f8d8-224e-4ada-b74d-c94c198a408b" config-ref="HTTP_Request_configuration" path="/getordersv2?searchtype=range&amp;offSet={offSet}&amp;maxRows=5000&amp;format=lines" responseTimeout="120000" >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+				<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"offSet" : vars.offSet
+}]]]></http:uri-params>
+				<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"offSet" : vars.offSet
+}]]]></http:query-params>
+			</http:request>
+			<ee:transform doc:name="Transform Message3" doc:id="7082eb5c-2058-4f4b-ad0f-795ae6d32275" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+	payload.order_lines map {
+        Unique_Id__c: $.unique_id,
+        Order_Reference_Number__c:$.reference_nbr,
+        Description:$.description,
+        Product_Code__c:$.stock_code,
+        UnitPrice:$.sell_price,
+        Quantity:$.shipped_qty,
+        Type__c: $.line_type,
+        Locataion_Code__c: $.stock_location,
+        Invoice_Number__c: $.invoice_nbr	
+    }
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<ee:transform doc:name="Transform Message4" doc:id="47bc3ae8-8c10-4fa8-b1e5-a7211f81d0d9" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv separator="|",quote="\"",quoteValues=true,escape="\""
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<salesforce:create-job-bulk-api-v2 objectType="OrderItem" operation="upsert" doc:name="Create job bulk api Order Items" doc:id="db2659ed-3746-412c-b922-2d7ccb79fb84" config-ref="Salesforce_Config" externalIdFieldName="Unique_Id__c" columnDelimiter="PIPE"/>
+			<ee:transform doc:name="Transform Message5" doc:id="412a1e6b-108c-44e7-b963-da8f6e860f37" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</foreach>
+	</flow>
+	<flow name="getOrderLineItemScheduler15MinFlow" doc:id="17e7a267-a94a-463f-8717-9b6a897fb467" >
+		<scheduler doc:name="Scheduler" doc:id="2b53ca01-df64-468b-9881-c907d9474e36" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="15" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</scheduler>
+		<ee:transform doc:name="Transform Message" doc:id="2274e514-5a61-484a-940b-eac61abc74de">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var dateFrom = now() as DateTime -  |PT15M|
+var dateTo = now() as DateTime
+---
+{
+    dateFrom: dateFrom as String { format: "yyyy-MM-dd'T'HH:mm:ss" },
+    dateTo: dateTo as String { format: "yyyy-MM-dd'T'HH:mm:ss" }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="4064d8d5-a1d1-4830-962b-c6eccbba6abe" message="Order Line Item #[payload]"/>
+		<http:request method="GET" doc:name="Get Order LineItem Request" doc:id="37a1886e-0bd7-4bbf-9baf-dc82c623aa88" config-ref="HTTP_Request_configuration" path="/getordersv2?format=lines&amp;searchtype=dates&amp;datefrom={dateFrom}&amp;dateto={dateTo}" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"dateFrom" : payload.dateFrom,
+	"dateTo" : payload.dateTo
+}]]]></http:uri-params>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"dateFrom" : payload.dateFrom,
+	"dateTo" : payload.dateTo
+}]]]></http:query-params>
+		
+</http:request>
+		<set-variable value="#[payload.order_lines?]" doc:name="Has Order Line Item Exists" doc:id="1c6e3d3c-ca35-4068-8eec-a03f76af0ea1" variableName="hasOrderLinesExists"/>
+		<choice doc:name="Choice" doc:id="bd54d006-892b-49ac-8b38-4082d4f3651d" >
+			<when expression="#[vars.hasOrderLinesExists]">
+				<ee:transform doc:name="Transform Message3" doc:id="914ba55a-f915-4934-a1e4-106be3fb42a6">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+	payload.order_lines map {
+        Unique_Id__c: $.unique_id,
+        Order_Reference_Number__c:$.reference_nbr,
+        Description:$.description,
+        Product_Code__c:$.stock_code,
+        UnitPrice:$.sell_price,
+        Quantity:$.shipped_qty,
+        Type__c: $.line_type,
+        Locataion_Code__c: $.stock_location,
+        Invoice_Number__c: $.invoice_nbr	
+    }
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="ce002f04-93ab-4962-996e-6196fc1d40cc" message="Order Line Item - #[sizeOf(payload)]" />
+				<ee:transform doc:name="Transform Message4" doc:id="28c3dfc4-7ba9-49a5-b808-3669d5aaa5b5">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/csv separator="|",quote="\"",quoteValues=true,escape="\""
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+				<salesforce:create-job-bulk-api-v2 objectType="OrderItem" operation="upsert" doc:name="Create job bulk api Order Items" doc:id="badd9808-54ae-4c54-97a6-4ceecfb7dcad" config-ref="Salesforce_Config" externalIdFieldName="Unique_Id__c" columnDelimiter="PIPE" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="2a3c92af-cba9-4f36-8e54-b9bc7d812a0d" message="Orders Lines - No Record Found" />
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message5" doc:id="22b7431c-fb1a-43d2-831a-de4318df79d8">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+	
+</flow>
+<flow name="getOrderLineItemByOrder(RefreshFromOrderPage)" doc:id="c7959fe6-0866-4758-850e-bd1f9c50fc14" >
+		<http:listener doc:name="Listener" doc:id="197f9335-08b9-4db1-87a4-43fd71fb8ffb" config-ref="HTTP_Listener_config" path="/getOrderLinesByOrder"/>
+		<http:request method="GET" doc:name="Get Order LineItem Request" doc:id="0f50a9a1-9aac-4e2e-af8a-45805f80c468" config-ref="HTTP_Request_configuration" path="/getordersv2?format=lines&amp;searchtype=reference&amp;referencenbr={reference}" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"reference" : attributes.queryParams.reference
+}]]]></http:uri-params>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"reference" : attributes.queryParams.reference
+}]]]></http:query-params>
+		
+</http:request>
+		<set-variable value="#[payload.order_lines?]" doc:name="Has Order Line Item Exists" doc:id="c42c614d-2b4c-4274-8ef6-b52586bb98dd" variableName="hasOrderLinesExists"/>
+		<choice doc:name="Choice" doc:id="71dca28c-a643-4f6a-94c8-c1a413765ea6" >
+			<when expression="#[vars.hasOrderLinesExists]">
+				<ee:transform doc:name="Transform Message3" doc:id="2038e670-6286-4f4f-8af8-d1f3ca22fd45">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+	payload.order_lines map {
+        Unique_Id__c: $.unique_id,
+        Order_Reference_Number__c:$.reference_nbr,
+        Description:$.description,
+        Product_Code__c:$.stock_code,
+        UnitPrice:$.sell_price,
+        Quantity:$.shipped_qty,
+        Type__c: $.line_type,
+        Locataion_Code__c: $.stock_location,
+        Invoice_Number__c: $.invoice_nbr	
+    }
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="cb92cafb-5aa5-4483-b81e-0921f3dfbd05" message="Order Line Item - #[sizeOf(payload)]" />
+				<ee:transform doc:name="Transform Message4" doc:id="a962381f-b894-442d-a4e9-97b7fe9da729">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/csv separator="|",quote="\"",quoteValues=true,escape="\""
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+				<salesforce:create-job-bulk-api-v2 objectType="OrderItem" operation="upsert" doc:name="Create job bulk api Order Items" doc:id="c925f780-ac1c-48ac-9df8-d5f9010b51f4" config-ref="Salesforce_Config" externalIdFieldName="Unique_Id__c" columnDelimiter="PIPE" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="7acb1a6f-9429-4d43-b77b-f4137bdf0b01" message="Orders Lines - No Record Found" />
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message5" doc:id="0327d5df-2a8d-4fb8-bac1-74dcbffd9e06">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+	
+</flow>
+	<flow name="GetQuotesDataLoadFlow(BulkDataLoad-oneTimeActivity)" doc:id="d87ae8fa-8636-4478-a5f7-e243c2a84b70" >
+		<http:listener doc:name="Get Quotes Listener" doc:id="9f34ac11-90c4-4c0c-8db0-45e86460fc3a" config-ref="HTTP_Listener_config" path="/getQuotes" />
+		<http:request method="GET" doc:name="Get Quotes Request1" doc:id="aac2a6f1-0b0d-4fe0-8fc9-0ea2058b7b31" config-ref="HTTP_Request_configuration" path="/getquotesv2?format=headers&amp;searchtype=range&amp;offset=0&amp;maxrows=1">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="c31bd1cc-c4ef-4fa2-be25-dabe792cdf62" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.quote_headers[0].total_available_rows]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload]" doc:name="Total Record Size" doc:id="e7351949-59c5-42ca-9ecd-dfd793ce6339" variableName="TotalRecordSize"/>
+		<foreach doc:name="For Each" doc:id="4754b334-d8b9-40a6-9aa4-c9849b76a95a" collection="#[1 to round(vars.TotalRecordSize as Number /5000)]">
+			<set-variable value="#[(vars.counter-1) * 5000]" doc:name="offSet" doc:id="9e7be069-fd58-4be8-8556-bc47b962faa1" variableName="offSet"/>
+			<http:request method="GET" doc:name="Get Quotes Request" doc:id="7e179aea-e8be-486f-aebf-6eca491fb4a2" config-ref="HTTP_Request_configuration" path="/getquotesv2?format=headers&amp;searchtype=range&amp;offset={offSet}&amp;maxrows=5000" responseTimeout="120000">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+				<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"offSet" : vars.offSet
+}]]]></http:uri-params>
+				<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"offSet" : vars.offSet
+}]]]></http:query-params>
+		</http:request>
+			<ee:transform doc:name="Transform Message" doc:id="96ef407d-7457-4d13-89ae-30f09cfaaf88">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload.quote_headers map((quote,index)->
+{
+ Customer_Code__c:quote.customer_code,
+ Delivery_Name__c:quote.delivery_name,
+ Name:quote.reference_nbr,
+ Unique_Id__c: quote.unique_id as String,
+ Delivery_Date__c: quote.delivery_date as Date,
+ Order_Code__c: quote.order_code,
+ Status:'Draft',
+ Quote_Date__c:quote.delivery_date as Date,
+ Cust_Order_Number__c:quote.customer_order,
+ Currency_Code__c:quote.currency_code,
+Currency_Rate__c:quote.currency_rate,
+Tax_Code__c:quote.sales_tax_type,
+Tax_Certificate__c:quote.tax_certificate,
+Price_Code__c:quote.price_code,
+Sales_Code__c:quote.sales_code,
+Frequency_Code__c:quote.frequency_code,
+Number_of_Days__c:quote.nbr_of_days,
+Next_Order_Due__c:quote.next_due,
+Document_Prefix__c:quote.forms_prefix,
+Despatch_Notes__c:quote.despatch_note_1,
+Address_Code__c:quote.address_code,
+Address_1__c:quote.delivery_note_1,
+Address_2__c:quote.delivery_note_2,
+Address_3__c:quote.delivery_note_3,
+Address_4__c:quote.delivery_note_4,
+Postcode__c:quote.delivery_postcode,
+Bar_Postcode__c:quote.delivery_post_barcode,
+Contact_Name__c:quote.contact_name,
+Phone_Number__c:quote.phone_nbr,
+Email_Address__c:quote.email_address,
+Run_Code__c:quote.run_code,
+Fax:quote.fax_nbr,
+Tax:quote.tax_value,
+Quote_Discount__c :quote.disc_pct,
+Price_Group__c: quote.area_code,
+Despatch_Date__c: quote.despatch_date as Date default null,
+Quote_Sent_Date__c:quote.despatch_date as Date default null,
+Status:quote.status_flag
+})
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			<ee:transform doc:name="Transform Message1" doc:id="f3ea33bd-0227-4327-a4ce-9726f94e4852">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/csv separator="|",quote="\"",quoteValues=true,escape="\""
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			<salesforce:create-job-bulk-api-v2 objectType="Quote" operation="upsert" doc:name="Create job bulk api v " doc:id="97714e40-6570-4b85-a2b2-7d78f4d8d3c6" config-ref="Salesforce_Config" externalIdFieldName="Unique_Id__c" columnDelimiter="PIPE"/>
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="4d3a9717-b860-41b5-9c59-ba7aa1683b1d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.QuotePayloadSet]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="GetQuoteScheduler15MinFlow" doc:id="90c6c060-02f3-4ef4-9b25-f2d8988f1da0" >
+		<scheduler doc:name="Scheduler" doc:id="94e0b410-edba-4b57-ad7c-7c42b4a5be24" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="15" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</scheduler>
+		<ee:transform doc:name="Transform Message" doc:id="68f44077-7db3-45d3-9544-b8c2fb10cac7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var dateFrom = now() as DateTime -  |PT15M|
+var dateTo = now() as DateTime
+---
+{
+    dateFrom: dateFrom as String { format: "yyyy-MM-dd'T'HH:mm:ss" },
+    dateTo: dateTo as String { format: "yyyy-MM-dd'T'HH:mm:ss" }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="GET" doc:name="Get Quotes Request" doc:id="216c96fe-1578-408a-97cf-1c319311ef54" config-ref="HTTP_Request_configuration" path="/getquotesv2?format=headers&amp;searchtype=dates&amp;datefrom={dateFrom}&amp;dateto={dateTo}" responseTimeout="120000">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+				<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"dateFrom" : payload.dateFrom,
+	"dateTo" : payload.dateTo
+}]]]></http:uri-params>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"dateFrom" : payload.dateFrom,
+	"dateTo" : payload.dateTo
+}]]]></http:query-params>
+		</http:request>
+		<set-variable value='#[payload."quote_headers"?]' doc:name="hasQuotesExists" doc:id="1c140083-2373-4c83-8f5a-1e79ae056883" variableName="hasQuotes" />
+		<choice doc:name="Decision" doc:id="e14849e0-fb93-447b-a2b9-143a31b1ef18" >
+			<when expression="#[vars.hasQuotes]">
+				<ee:transform doc:name="Transform Message" doc:id="abb2289a-e286-4f52-94c1-93641d8c32d0">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload.quote_headers map((quote,index)->
+{
+ Customer_Code__c:quote.customer_code,
+ Delivery_Name__c:quote.delivery_name,
+ Name:quote.reference_nbr,
+ Unique_Id__c: quote.unique_id as String,
+ Delivery_Date__c: quote.delivery_date as Date,
+ Order_Code__c: quote.order_code,
+ Status:'Draft',
+ Quote_Date__c:quote.delivery_date as Date,
+ Cust_Order_Number__c:quote.customer_order,
+ Currency_Code__c:quote.currency_code,
+Currency_Rate__c:quote.currency_rate,
+Tax_Code__c:quote.sales_tax_type,
+Tax_Certificate__c:quote.tax_certificate,
+Price_Code__c:quote.price_code,
+Sales_Code__c:quote.sales_code,
+Frequency_Code__c:quote.frequency_code,
+Number_of_Days__c:quote.nbr_of_days,
+Next_Order_Due__c:quote.next_due,
+Document_Prefix__c:quote.forms_prefix,
+Despatch_Notes__c:quote.despatch_note_1,
+Address_Code__c:quote.address_code,
+Address_1__c:quote.delivery_note_1,
+Address_2__c:quote.delivery_note_2,
+Address_3__c:quote.delivery_note_3,
+Address_4__c:quote.delivery_note_4,
+Postcode__c:quote.delivery_postcode,
+Bar_Postcode__c:quote.delivery_post_barcode,
+Contact_Name__c:quote.contact_name,
+Phone_Number__c:quote.phone_nbr,
+Email_Address__c:quote.email_address,
+Run_Code__c:quote.run_code,
+Fax:quote.fax_nbr,
+Tax:quote.tax_value,
+Quote_Discount__c :quote.disc_pct,
+Price_Group__c: quote.area_code,
+Despatch_Date__c: quote.despatch_date as Date default null,
+Quote_Sent_Date__c:quote.despatch_date as Date default null,
+Status:quote.status_flag
+})
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="21d886dc-8d73-4a40-89ce-2f2506afc536" message="Quotes - Record Found #[sizeOf(payload)]" />
+				<ee:transform doc:name="Transform Message1" doc:id="8b0df129-04f2-4ed9-8236-a52ef6e7e5e7">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/csv separator="|",quote="\"",quoteValues=true,escape="\""
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<salesforce:create-job-bulk-api-v2 objectType="Quote" operation="upsert" doc:name="Create job bulk api v " doc:id="12dbb137-34e3-470c-8633-c362951ab49e" config-ref="Salesforce_Config" externalIdFieldName="Unique_Id__c" columnDelimiter="PIPE" />
+				<ee:transform doc:name="Transform Message" doc:id="0d91c12a-adde-41dc-9331-fa2d8339612f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="de009090-633d-410f-82d0-72c2446dad23" message="Quote - No Record Found"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="3a975ed0-f827-4d24-8169-d740d9e8dbf8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	
+</flow>
+<flow name="GetQuoteHeaderByReference" doc:id="5554496c-5979-442e-b244-fb71a4938cc6" >
+		<http:listener doc:name="Listener" doc:id="b0e4ad6f-be68-4fc7-86fa-cc548a914308" config-ref="HTTP_Listener_config" path="/getQuoteHeaderByReference"/>
+		<http:request method="GET" doc:name="Get Quotes Request" doc:id="71ba33fb-3de7-4d65-9c32-459c5eaf3691" config-ref="HTTP_Request_configuration" path="/getquotesv2?format=headers&amp;searchtype=reference&amp;referencenbr={reference}" responseTimeout="120000">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+				<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"reference" : attributes.queryParams.reference
+}]]]></http:uri-params>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"reference" : attributes.queryParams.reference
+}]]]></http:query-params>
+		</http:request>
+		<set-variable value='#[payload."quote_headers"?]' doc:name="hasQuotesExists" doc:id="8ddfb46d-1d94-475d-b757-a596c4d680d1" variableName="hasQuotes" />
+		<choice doc:name="Decision" doc:id="d85cd988-a67f-4bd3-9d69-f53197263d6f" >
+			<when expression="#[vars.hasQuotes]">
+				<ee:transform doc:name="Transform Message" doc:id="49be0fef-cebb-4bdc-a1e9-9b464e1440bd">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload.quote_headers map((quote,index)->
+{
+ Customer_Code__c:quote.customer_code,
+ Delivery_Name__c:quote.delivery_name,
+ Name:quote.reference_nbr,
+ Unique_Id__c: quote.unique_id as String,
+ Delivery_Date__c: quote.delivery_date as Date,
+ Order_Code__c: quote.order_code,
+ Status:'Draft',
+ Quote_Date__c:quote.delivery_date as Date,
+ Cust_Order_Number__c:quote.customer_order,
+ Currency_Code__c:quote.currency_code,
+Currency_Rate__c:quote.currency_rate,
+Tax_Code__c:quote.sales_tax_type,
+Tax_Certificate__c:quote.tax_certificate,
+Price_Code__c:quote.price_code,
+Sales_Code__c:quote.sales_code,
+Frequency_Code__c:quote.frequency_code,
+Number_of_Days__c:quote.nbr_of_days,
+Next_Order_Due__c:quote.next_due,
+Document_Prefix__c:quote.forms_prefix,
+Despatch_Notes__c:quote.despatch_note_1,
+Address_Code__c:quote.address_code,
+Address_1__c:quote.delivery_note_1,
+Address_2__c:quote.delivery_note_2,
+Address_3__c:quote.delivery_note_3,
+Address_4__c:quote.delivery_note_4,
+Postcode__c:quote.delivery_postcode,
+Bar_Postcode__c:quote.delivery_post_barcode,
+Contact_Name__c:quote.contact_name,
+Phone_Number__c:quote.phone_nbr,
+Email_Address__c:quote.email_address,
+Run_Code__c:quote.run_code,
+Fax:quote.fax_nbr,
+Tax:quote.tax_value,
+Quote_Discount__c :quote.disc_pct,
+Price_Group__c: quote.area_code,
+Despatch_Date__c: quote.despatch_date as Date default null,
+Quote_Sent_Date__c:quote.despatch_date as Date default null,
+Status:quote.status_flag
+})
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="b1d6e8cb-629b-4ee4-b66b-0e5eafda5f46" message="Quotes - Record Found #[sizeOf(payload)]" />
+				<ee:transform doc:name="Transform Message1" doc:id="71f6517d-e3f9-47fb-ba19-1685cfc204f2">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/csv separator="|",quote="\"",quoteValues=true,escape="\""
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<salesforce:create-job-bulk-api-v2 objectType="Quote" operation="upsert" doc:name="Create job bulk api v " doc:id="418d41aa-342e-4910-b2aa-468a8a2af759" config-ref="Salesforce_Config" externalIdFieldName="Unique_Id__c" columnDelimiter="PIPE" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="86f60e73-2370-442e-93ea-3de4400ec3b7" message="Quote - No Record Found"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="4ba21c40-e9f7-4ebd-af17-c5a681c81738">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	
+
+</flow>
+<flow name="GetQuoteHeaderByCustomer(RefreshQuoteFrom-AccountPage-QuotePage)" doc:id="ed3ce99e-70c0-4151-b196-fdc033c88f24" >
+		<http:listener doc:name="Listener" doc:id="6fe4c452-bf63-4f74-a027-e987941245ad" config-ref="HTTP_Listener_config" path="/getQuoteHeaderByCustomer"/>
+		<http:request method="GET" doc:name="Get Quotes Request" doc:id="eb253f3f-e4e8-444d-9e0e-1dd164e7daf0" config-ref="HTTP_Request_configuration" path="/getquotesv2?format=headers&amp;searchtype=customer&amp;customer={customer}" responseTimeout="120000">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+				<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"customer" : attributes.queryParams.customer
+}]]]></http:uri-params>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"customer" : attributes.queryParams.customer
+}]]]></http:query-params>
+		</http:request>
+		<set-variable value='#[payload."quote_headers"?]' doc:name="hasQuotesExists" doc:id="f69c143c-8414-4413-afb8-ac3f81591c71" variableName="hasQuotes" />
+		<choice doc:name="Decision" doc:id="a33765bb-5786-452b-ac8e-11ad82bd7357" >
+			<when expression="#[vars.hasQuotes]">
+				<ee:transform doc:name="Transform Message" doc:id="3cf295ca-1f95-40d1-9151-df01908b5e20">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload.quote_headers map((quote,index)->
+{
+ Customer_Code__c:quote.customer_code,
+ Delivery_Name__c:quote.delivery_name,
+ Name:quote.reference_nbr,
+ Unique_Id__c: quote.unique_id as String,
+ Delivery_Date__c: quote.delivery_date as Date,
+ Order_Code__c: quote.order_code,
+ Status:'Draft',
+ Quote_Date__c:quote.delivery_date as Date,
+ Cust_Order_Number__c:quote.customer_order,
+ Currency_Code__c:quote.currency_code,
+Currency_Rate__c:quote.currency_rate,
+Tax_Code__c:quote.sales_tax_type,
+Tax_Certificate__c:quote.tax_certificate,
+Price_Code__c:quote.price_code,
+Sales_Code__c:quote.sales_code,
+Frequency_Code__c:quote.frequency_code,
+Number_of_Days__c:quote.nbr_of_days,
+Next_Order_Due__c:quote.next_due,
+Document_Prefix__c:quote.forms_prefix,
+Despatch_Notes__c:quote.despatch_note_1,
+Address_Code__c:quote.address_code,
+Address_1__c:quote.delivery_note_1,
+Address_2__c:quote.delivery_note_2,
+Address_3__c:quote.delivery_note_3,
+Address_4__c:quote.delivery_note_4,
+Postcode__c:quote.delivery_postcode,
+Bar_Postcode__c:quote.delivery_post_barcode,
+Contact_Name__c:quote.contact_name,
+Phone_Number__c:quote.phone_nbr,
+Email_Address__c:quote.email_address,
+Run_Code__c:quote.run_code,
+Fax:quote.fax_nbr,
+Tax:quote.tax_value,
+Quote_Discount__c :quote.disc_pct,
+Price_Group__c: quote.area_code,
+Despatch_Date__c: quote.despatch_date as Date default null,
+Quote_Sent_Date__c:quote.despatch_date as Date default null,
+Status:quote.status_flag
+})
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="369ef054-ed7b-4604-bd55-f4a79810b76c" message="Quotes - Record Found #[sizeOf(payload)]" />
+				<ee:transform doc:name="Transform Message1" doc:id="008a4551-deeb-458a-ad38-b97255dc26a1">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/csv separator="|",quote="\"",quoteValues=true,escape="\""
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<salesforce:create-job-bulk-api-v2 objectType="Quote" operation="upsert" doc:name="Create job bulk api v " doc:id="cf4df49b-7d81-4e9b-8fb7-824f2f1f4951" config-ref="Salesforce_Config" externalIdFieldName="Unique_Id__c" columnDelimiter="PIPE" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="db775b44-1292-4dd5-8581-0596c168c3dc" message="Quote - No Record Found"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="706239b0-83a8-438c-bc0f-7a113d9e0389">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	
+
+</flow>
+	<flow name="GetQuoteLineItems(BulkDataLoad)" doc:id="957ed9f0-069d-450a-bf4f-210603044dbe" >
+		<http:listener doc:name="Get Quote Line Items" doc:id="0a317433-3663-4cc2-aebf-bb372f633344" config-ref="HTTP_Listener_config" path="/getQuoteLineItems"/>
+		<http:request method="GET" doc:name="Get Quote LineItem Request1" doc:id="78c2e9a3-ccf3-4f11-b4b6-50be32ac0304" config-ref="HTTP_Request_configuration" path="/getquotesv2?format=lines&amp;searchtype=range&amp;offset=0&amp;maxrows=1">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="a500f7cd-5f35-4cbd-86a4-b1886ab3a534" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.quote_lines[0].total_available_rows]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload]" doc:name="Total Record Size" doc:id="03584157-9b72-4e1f-8b31-ae753c792f7b" variableName="TotalRecordSize"/>
+		<foreach doc:name="For Each" doc:id="b0f8bdf6-1a69-4abd-a60f-aaf8cae381f5" collection="#[1 to round(vars.TotalRecordSize as Number /5000)]">
+			<set-variable value="#[(vars.counter-1) * 5000]" doc:name="Offset" doc:id="43a9a501-152e-4a5f-a161-2004f5edbb50" variableName="offSet"/>
+			<http:request method="GET" doc:name="Get Quote LineItems" doc:id="b0696650-2885-4eea-ad7a-c7556c605426" config-ref="HTTP_Request_configuration" path="/getquotesv2?format=lines&amp;searchtype=range&amp;offset={offSet}&amp;maxrows=5000" responseTimeout="120000">
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+				<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"offSet" : vars.offSet
+}]]]></http:uri-params>
+				<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"offSet" : vars.offSet
+}]]]></http:query-params>
+			</http:request>
+			<ee:transform doc:name="Transform Message" doc:id="493d2d45-5707-4518-8f6c-dcfaa76a8910" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+	payload.quote_lines map {
+        Quote_Reference_Number__c: $.reference_nbr,
+        Unique_Id__c: $.unique_id,
+        Description:$.description,
+        Product_Code__c:$.stock_code,
+        UnitPrice:$.sell_price,
+        Discount:$.disc_pct,
+        Quantity:$.stock_qty,
+        Type__c: $.line_type,
+        Location_Code__c:$.stock_location
+    }
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<ee:transform doc:name="Transform Message" doc:id="10e38d18-c5f7-43aa-80f5-b34eecc07419" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv separator="|"
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<salesforce:create-job-bulk-api-v2 doc:name="Create job bulk api v 2" doc:id="28e642f3-4983-478a-bd57-c647f77e16eb" config-ref="Salesforce_Config" columnDelimiter="PIPE" objectType="QuoteLineItem" operation="upsert" externalIdFieldName="Unique_Id__c"/>
+			<ee:transform doc:name="Transform Message" doc:id="fcd37d6d-762e-44a3-b850-ec3d614e006a" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="53992049-f6e9-494a-9545-4437cee5a317" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="GetQuoteLinesByQuote(RefreshQuoteLineFromQuotePage)" doc:id="62697544-8139-44c6-81bb-a0eccb1c175b" >
+		<http:listener doc:name="Listener" doc:id="533cd89b-4525-4eb7-9ed4-328b98745032" config-ref="HTTP_Listener_config" path="/getQuoteLinesByQuote"/>
+		<http:request method="GET" doc:name="Get Quote LineItems" doc:id="418a9d1b-09a4-47b0-a5e0-792a71d47b61" config-ref="HTTP_Request_configuration" path="/getquotesv2?format=lines&amp;searchtype=reference&amp;referencenbr={reference}" responseTimeout="120000">
+				<http:headers><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"reference" : attributes.queryParams.reference
+}]]]></http:uri-params>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"reference" : attributes.queryParams.reference
+}]]]></http:query-params>
+			
+</http:request>
+		<set-variable value="#[payload.quote_lines?]" doc:name="HasQuoteLineItemExists" doc:id="cbfd6a15-3cae-4648-99d6-e7ed21922bfc" variableName="HasQuoteLineItemExists"/>
+		<choice doc:name="Choice" doc:id="330db7be-0aec-4fe3-b936-2f89a15996ee" >
+			<when expression="#[vars.HasQuoteLineItemExists]">
+				<ee:transform doc:name="Transform Message" doc:id="27a8f83f-89d4-4142-b76c-18be5ee2a9da">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+	payload.quote_lines map {
+        Quote_Reference_Number__c: $.reference_nbr,
+        Unique_Id__c: $.unique_id,
+        Description:$.description,
+        Product_Code__c:$.stock_code,
+        UnitPrice:$.sell_price,
+        Discount:$.disc_pct,
+        Quantity:$.stock_qty,
+        Type__c: $.line_type,
+        Location_Code__c:$.stock_location
+    }
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="9c816e67-4278-4d78-a3aa-77490bf147ce" message="Quote Line Item Found - #[sizeOf(payload)]"/>
+				<ee:transform doc:name="Transform Message" doc:id="8a0c71d8-c799-44a0-8de3-fc524a713228">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/csv separator="|"
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+				<salesforce:create-job-bulk-api-v2 doc:name="Create job bulk api v 2" doc:id="eafc0aeb-b7ce-4473-a642-8a514bf16306" config-ref="Salesforce_Config" columnDelimiter="PIPE" objectType="QuoteLineItem" operation="upsert" externalIdFieldName="Unique_Id__c" />
+				<ee:transform doc:name="Transform Message" doc:id="5b0355ab-f267-4f85-9be2-c457aa566042">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="b35ef951-6bf1-4038-83c9-30a7b3568fe1" message="Quote Line Item - No Record Found" />
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="d6070108-9b69-476e-a684-35a229f05730" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="GetQuoteLineItemScheduler15MinFlow(RunsEvery15Minutes)" doc:id="85b31cc3-4b9b-43bf-87b3-d79cde258ea5" >
+		<scheduler doc:name="Scheduler" doc:id="4599171b-1a29-49a8-bbeb-2790f09f31bf" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="15" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</scheduler>
+		<ee:transform doc:name="Transform Message" doc:id="c59d2b8b-fafc-43ff-9f62-efef45af8457" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var dateFrom = now() as DateTime -  |PT15M|
+var dateTo = now() as DateTime
+---
+{
+    dateFrom: dateFrom as String { format: "yyyy-MM-dd'T'HH:mm:ss" },
+    dateTo: dateTo as String { format: "yyyy-MM-dd'T'HH:mm:ss" }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="dcca85b7-99ec-43aa-9a70-d410b20e7fd6" message="Quote Line Item - #[payload]"/>
+		<http:request method="GET" doc:name="Get Quote LineItems" doc:id="e8593d96-fb6a-4279-a5e4-03e44e1c7a83" config-ref="HTTP_Request_configuration" path="/getquotesv2?format=lines&amp;searchtype=dates&amp;datefrom={dateFrom}&amp;dateto={dateTo}" responseTimeout="120000">
+				<http:headers><![CDATA[#[output application/java
+---
+{
+	"account" : "100021",
+	"Authorization" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3Mzk5NDg5NTksImlzcyI6IkNpdHlXZXN0IiwiZXhwIjoyMDU1NTE3NzU5fQ.EPgRVgwIQTb3N_2NpEunxk35id9mSITbhmwl8k_fYI0"
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"dateFrom" : payload.dateFrom,
+	"dateTo" : payload.dateTo
+}]]]></http:uri-params>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"dateFrom" : payload.dateFrom,
+	"dateTo" : payload.dateTo
+}]]]></http:query-params>
+			
+</http:request>
+		<set-variable value="#[payload.quote_lines?]" doc:name="HasQuoteLineItemExists" doc:id="40143cb5-2038-4a95-af28-e1055bdec875" variableName="HasQuoteLineItemExists"/>
+		<choice doc:name="Choice" doc:id="f0de51c1-e1c5-4dd9-b56b-e47c795547f6" >
+			<when expression="#[vars.HasQuoteLineItemExists]">
+				<ee:transform doc:name="Transform Message" doc:id="5053af53-77f8-490a-a88f-01e453799945">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+	payload.quote_lines map {
+        Quote_Reference_Number__c: $.reference_nbr,
+        Unique_Id__c: $.unique_id,
+        Description:$.description,
+        Product_Code__c:$.stock_code,
+        UnitPrice:$.sell_price,
+        Discount:$.disc_pct,
+        Quantity:$.stock_qty,
+        Type__c: $.line_type,
+        Location_Code__c:$.stock_location
+    }
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="25b055b7-26be-4caa-9cc2-e5e246ddcb40" message="Quote Line Item Found - #[sizeOf(payload)]"/>
+				<ee:transform doc:name="Transform Message" doc:id="342f5151-c63a-4679-a0f6-36930d014f53">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/csv separator="|"
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+				<salesforce:create-job-bulk-api-v2 doc:name="Create job bulk api v 2" doc:id="60d39330-5d35-43a8-a751-52157fd84c77" config-ref="Salesforce_Config" columnDelimiter="PIPE" objectType="QuoteLineItem" operation="upsert" externalIdFieldName="Unique_Id__c" />
+				<ee:transform doc:name="Transform Message" doc:id="39e40c44-6a36-4039-841a-86787503a340">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="5137c210-4c84-473d-bd8d-23b91e567077" message="Quote Line Item - No Record Found" />
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="317e0fc5-7a19-4ff4-80d8-abf01f00ccf5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="getFailedJobFlow(CallingFromGetFailedJobResultTab)" doc:id="e6d1add4-8f01-48a6-aecd-98695363fba7" >
+		<http:listener doc:name="Listener" doc:id="fe385895-638c-4763-9f44-77b27373e3f1" config-ref="HTTP_Listener_config" path="/getFailedJobResult"/>
+		<salesforce:retrieve-job-failed-results-bulk-v2 doc:name="Retrieve job failed results bulk v 2" doc:id="4bdbd1d7-01f3-4e83-87b1-56b987b81bc3" config-ref="Salesforce_Config" id="#[attributes.queryParams.'jobId']"/>
+		<ee:transform doc:name="Transform Message" doc:id="ff00aacd-8e9f-40b6-aa05-e8a2eb1893b3" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="SalesforceToTencia" doc:id="2ace361a-3870-4261-b632-d6cd32569318" >
+		<salesforce:replay-channel-listener streamingChannel="/event/Send_Notification_To_Mule__e" replayOption="ALL" doc:name="Replay channel listener" doc:id="02b03a48-cf30-431b-839e-d1c331dd6357" config-ref="Salesforce_Config" autoReplay="true"/>
+		<set-variable value="#[payload.data.payload.sObjectType__c]" doc:name="Check Object Type" doc:id="a55c7ce5-37ff-46a1-9971-c726d618dd2e" variableName="sObjectType"/>
+		<choice doc:name="ObjectTypeCondition" doc:id="a1e938c8-6c08-4a53-af5e-c731276829c2" >
+			<when expression="#[vars.sObjectType == 'Account']">
+				<flow-ref doc:name="Account Sync" doc:id="2f68a871-95b0-469a-ad2c-4cea53004ac2" name="AccountSyncToTencia"/>
+			</when>
+			<otherwise >
+				<flow-ref doc:name="Quote Sync" doc:id="6fecc639-3fcf-4a12-be01-c92d1210ee60" name="QuoteSyncToTencia"/>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="GetUnprocessedRecords" doc:id="42f87d23-f68b-451d-862c-f87fe5247dbf" >
+		<http:listener doc:name="Listener" doc:id="59b3a24c-0937-47b0-b4ec-8a0ace6b254d" config-ref="HTTP_Listener_config" path="/getUnProcessedJobResult" />
+		<salesforce:retrieve-job-unprocessed-results-bulk-v2 doc:name="Retrieve job unprocessed results bulk v 2" doc:id="6b6bbffa-9b82-4e82-a002-82775f3b7a72" config-ref="Salesforce_Config" id="#[attributes.queryParams.'jobId']"/>
+		<ee:transform doc:name="Transform Message" doc:id="1d79c7a8-996e-4531-9f38-5abcfe97ec1b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="getSuccessfulJObReslt" doc:id="0ff02706-40f2-450d-837c-afe46c725e2c" >
+		<http:listener doc:name="Listener" doc:id="c5659766-b8a1-4c07-9c8b-bd42b1d97146" config-ref="HTTP_Listener_config" path="/getProcessedJobResult"/>
+		<salesforce:retrieve-job-successful-results-bulk-v2 doc:name="Retrieve job successful results bulk v 2" doc:id="d06746ce-548a-4a60-95fa-6180b267631a" config-ref="Salesforce_Config" id="#[attributes.queryParams.'jobId']"/>
+		<ee:transform doc:name="Transform Message" doc:id="4a977474-a879-4ba6-9f6a-a8cac54651d9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="getJobInfo" doc:id="29b943ca-4739-45bd-b69f-0e1d185787dd" >
+		<http:listener doc:name="Listener" doc:id="8549eea2-9b27-4f9f-88db-cb9ac025f4a0" config-ref="HTTP_Listener_config" path="/getJobInfo"/>
+		<salesforce:job-info doc:name="Job info" doc:id="1d2954bf-3a76-44bb-8870-6ac4a6e4335e" config-ref="Salesforce_Config" jobId="#[attributes.queryParams.'jobId']"/>
+		<ee:transform doc:name="Transform Message" doc:id="c608f7e1-3d28-4327-8348-37c54435775e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
