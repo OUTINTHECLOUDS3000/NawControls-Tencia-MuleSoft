@@ -96,7 +96,7 @@ payload]]></ee:set-payload>
     Account_Contact_Mobile__c,  
     Account_Contact_Name__c,  
     Account_Contact_Phone__c,  
-    SMS_Flag  from Account where Id= ':recordId' LIMIT 1]]></salesforce:salesforce-query>
+    SMS_Flag__c  from Account where Id= ':recordId' LIMIT 1]]></salesforce:salesforce-query>
 			<salesforce:parameters><![CDATA[#[output application/java
 ---
 {
@@ -172,7 +172,7 @@ output application/json
     account_contact_mobile: payload[0].Account_Contact_Mobile__c,
     account_contact_name: payload[0].Account_Contact_Name__c,
     account_contact_phone: payload[0].Account_Contact_Phone__c,
-    sms_flag: payload[0].SMS_Flag
+    sms_flag: payload[0].SMS_Flag__c
 }
 ]]></ee:set-payload>
 			</ee:message>
@@ -210,7 +210,9 @@ payload]]]></http:body>
 						<http:failure-status-code-validator values="412" />
 					</http:response-validator>
 				</http:request>
-				<ee:transform doc:name="Transform Message" doc:id="e151024d-d1c6-43e5-9e89-b1ebe85fbaf7">
+				<choice doc:name="Choice" doc:id="9fd81845-1da3-47f6-99be-1fa2b5d7b097">
+					<when expression="#[payload.unique_id != null]">
+						<ee:transform doc:name="Transform Message" doc:id="e151024d-d1c6-43e5-9e89-b1ebe85fbaf7">
 					<ee:message>
 						<ee:set-payload><![CDATA[%dw 2.0
 output application/java
@@ -223,7 +225,9 @@ output application/java
 ]]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
-				<salesforce:update type="Account" doc:name="Update" doc:id="4b4e45cb-1001-4c66-b3f4-1111525248aa" config-ref="Salesforce_Config" />
+						<salesforce:update type="Account" doc:name="Update" doc:id="4b4e45cb-1001-4c66-b3f4-1111525248aa" config-ref="Salesforce_Config" />
+					</when>
+				</choice>
 				<ee:transform doc:name="Transform Message" doc:id="21fe81df-0d62-4d81-8952-042ff27dd12f">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -390,7 +394,7 @@ payload]]></ee:set-payload>
 			</otherwise>
 		</choice>
 	</sub-flow>
-	<flow name="GetCustomersDataLoadFlow(BulkDataLoad)" doc:id="85555619-0f8e-4685-b9f4-bcc0caccc59d" >
+	<flow name="GetCustomersDataLoadFlow(BulkDataLoad)" doc:id="85555619-0f8e-4685-b9f4-bcc0caccc59d">
 		<http:listener doc:name="Listener" doc:id="41d28ed9-0f66-460b-ad81-824d3416b673" config-ref="HTTP_Listener_config" path="/getCustomers"/>
 		<http:request method="GET" doc:name="Get Customers Request" doc:id="436cf6ac-4ca2-4291-b8c5-b62a9e391403" config-ref="HTTP_Request_configuration" path="/getcustomersv2?searchtype=range&amp;offset=0&amp;maxrows=1">
 			<http:headers ><![CDATA[#[output application/java
@@ -560,20 +564,22 @@ payload]]></ee:set-payload>
 				<fixed-frequency frequency="15" timeUnit="MINUTES"/>
 			</scheduling-strategy>
 		</scheduler>
-		<!-- [STUDIO:"Listener"]<http:listener doc:name="Listener" doc:id="a5a75fc0-b7fe-4abe-a950-5e1211c3f129" config-ref="HTTP_Listener_config" path="/getCustomerDaily"/> [STUDIO] -->
 		<ee:transform doc:name="Transform Message" doc:id="f59e01d9-300d-4aea-9e7f-7acd34f49d67" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
-var dateFrom = now() as DateTime -  |PT15M|
-var dateTo = now() as DateTime
+var base = now() >> "Australia/Sydney"
+var dateFrom = base -  |PT15M|
+var dateTo = base
 ---
 {
-    dateFrom: dateFrom as String { format: "yyyy-MM-dd'T'HH:mm:ss" },
-    dateTo: dateTo as String { format: "yyyy-MM-dd'T'HH:mm:ss" }
-}]]></ee:set-payload>
+"dateFrom": dateFrom as String { format: "yyyy-MM-dd'T'hh:mm:ss" },
+"dateTo": dateTo as String { format: "yyyy-MM-dd'T'hh:mm:ss" },
+}
+]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="586d6ae4-5785-401e-9ead-f829db3f835a" message="Customer - #[payload]"/>
 		<http:request method="GET" doc:name="Get Customers Request" doc:id="db2f534e-18cf-49f2-9314-8bb9872f2bf0" config-ref="HTTP_Request_configuration" path="/getcustomersv2?searchtype=dates&amp;datefrom={dateFrom}&amp;dateto={dateTo}" >
 			<http:headers ><![CDATA[#[output application/java
 ---
@@ -587,12 +593,6 @@ var dateTo = now() as DateTime
 	"dateFrom" : payload.dateFrom,
 	"dateTo" : payload.dateTo
 }]]]></http:uri-params>
-			<http:query-params ><![CDATA[#[output application/java
----
-{
-	"dateFrom" : payload.dateFrom,
-	"dateTo" : payload.dateTo
-}]]]></http:query-params>
 		</http:request>
 		<set-variable value="#[payload.customers?]" doc:name="Customer Update Exists" doc:id="49470134-154a-4b63-8d81-e705cf8c2937" variableName="hasCustomerList"/>
 		<choice doc:name="HasCustomerExists" doc:id="e5515c01-2c96-4330-b656-2dc64dec8e2d" >
@@ -981,25 +981,27 @@ payload]]></ee:set-payload>
 		</foreach>
 	</flow>
 	
-	<flow name="GetProductSchedulerDailyFlow(PullDataDaily)" doc:id="648d4ba1-8063-4002-95f2-31d1468e53fd" >
+	<flow name="GetProductSchedulerDailyFlowEvery15Mins(RunsDaily15Mins)" doc:id="648d4ba1-8063-4002-95f2-31d1468e53fd" >
 		<scheduler doc:name="Scheduler" doc:id="0e501c0a-9986-4bd6-9874-a85465c1df69" >
 			<scheduling-strategy >
-				<fixed-frequency frequency="1" timeUnit="DAYS"/>
+				<fixed-frequency frequency="15" timeUnit="MINUTES"/>
 			</scheduling-strategy>
 		</scheduler>
 		<ee:transform doc:name="Transform Message" doc:id="27467d49-71c8-4676-aa8a-9fa7c3dc6a5b" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
-var dateFrom = now() as DateTime -  |P1D|
-var dateTo = now() as DateTime
+var base = now() >> "Australia/Sydney"
+var dateFrom = base -  |PT15M|
+var dateTo = base
 ---
 {
-    dateFrom: dateFrom as String { format: "yyyy-MM-dd'T'HH:mm:ss" },
-    dateTo: dateTo as String { format: "yyyy-MM-dd'T'HH:mm:ss" }
+"dateFrom": dateFrom as String { format: "yyyy-MM-dd'T'hh:mm:ss" },
+"dateTo": dateTo as String { format: "yyyy-MM-dd'T'hh:mm:ss" },
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="3f66a069-b7d0-4327-a451-f3a6ef8867c7" message="Products - #[payload]"/>
 		<http:request method="GET" doc:name="Get Products Request" doc:id="1b5ea737-0a08-4702-8065-3f60f8b7cf3d" config-ref="HTTP_Request_configuration" path="/getproductsv2?searchtype=dates&amp;datefrom={dateFrom}&amp;dateto={dateTo}" responseTimeout="60000">
 			<http:headers><![CDATA[#[output application/java
 ---
@@ -1013,12 +1015,6 @@ var dateTo = now() as DateTime
 	"dateFrom" : payload.dateFrom,
 	"dateTo" : payload.dateTo
 }]]]></http:uri-params>
-			<http:query-params><![CDATA[#[output application/java
----
-{
-	"dateFrom" : payload.dateFrom,
-	"dateTo" : payload.dateTo
-}]]]></http:query-params>
 		</http:request>
 		<set-variable value="#[payload.products?]" doc:name="HasProductsExists" doc:id="5b33e08d-37e7-497e-97da-3a8596dea89a" variableName="hasProducts"/>
 		<choice doc:name="Choice" doc:id="231160b5-37d8-40ec-932e-11771790c259" >
@@ -1297,23 +1293,25 @@ payload]]></ee:set-payload>
 		</ee:transform>
 		</foreach>
 	</flow>
-	<flow name="GetOrderScheduler15MinFlow(PullOrdersEvery15Minutes)" doc:id="46e85c5f-4be8-4c91-ab42-f6487c6e939c" >
+	<flow name="GetOrderScheduler5MinFlow(PullOrdersEvery5Minutes)" doc:id="46e85c5f-4be8-4c91-ab42-f6487c6e939c" >
 		<scheduler doc:name="Scheduler" doc:id="24880062-5c73-4ebb-ab94-5bd0c82a99a1" >
 			<scheduling-strategy >
-				<fixed-frequency frequency="15" timeUnit="MINUTES"/>
+				<fixed-frequency frequency="5" timeUnit="MINUTES"/>
 			</scheduling-strategy>
 		</scheduler>
 		<ee:transform doc:name="Transform Message" doc:id="4b3aea79-5a2b-4b33-9427-2dc7121372f2" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
-var dateFrom = now() as DateTime -  |PT15M|
-var dateTo = now() as DateTime
+var base = now() >> "Australia/Sydney"
+var dateFrom = base -  |PT5M|
+var dateTo = base
 ---
 {
-    dateFrom: dateFrom as String { format: "yyyy-MM-dd'T'HH:mm:ss" },
-    dateTo: dateTo as String { format: "yyyy-MM-dd'T'HH:mm:ss" }
-}]]></ee:set-payload>
+"dateFrom": dateFrom as String { format: "yyyy-MM-dd'T'hh:mm:ss" },
+"dateTo": dateTo as String { format: "yyyy-MM-dd'T'hh:mm:ss" },
+}
+]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="8c7f44ab-c0de-4804-bcda-47dc76f2fcfa" message="Order - #[payload]"/>
@@ -1330,12 +1328,6 @@ var dateTo = now() as DateTime
 	"dateFrom" : payload.dateFrom,
 	"dateTo" : payload.dateTo
 }]]]></http:uri-params>
-			<http:query-params><![CDATA[#[output application/java
----
-{
-	"dateFrom" : payload.dateFrom,
-	"dateTo" : payload.dateTo
-}]]]></http:query-params>
 		</http:request>
 		<set-variable value='#[payload."order_headers"?]' doc:name="Has Order Exists" doc:id="57786458-50fc-4a52-b3ce-1baf62eb4175" variableName="hasOrders"/>
 		<choice doc:name="Decision" doc:id="d7540fd2-a272-475f-a679-dbd02214454a" >
@@ -1692,22 +1684,23 @@ payload]]></ee:set-payload>
 			</ee:transform>
 		</foreach>
 	</flow>
-	<flow name="getOrderLineItemScheduler15MinFlow" doc:id="17e7a267-a94a-463f-8717-9b6a897fb467" >
+	<flow name="getOrderLineItemScheduler10MinFlow" doc:id="17e7a267-a94a-463f-8717-9b6a897fb467" >
 		<scheduler doc:name="Scheduler" doc:id="2b53ca01-df64-468b-9881-c907d9474e36" >
 			<scheduling-strategy >
-				<fixed-frequency frequency="15" timeUnit="MINUTES"/>
+				<fixed-frequency frequency="10" timeUnit="MINUTES"/>
 			</scheduling-strategy>
 		</scheduler>
 		<ee:transform doc:name="Transform Message" doc:id="2274e514-5a61-484a-940b-eac61abc74de">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
-var dateFrom = now() as DateTime -  |PT15M|
-var dateTo = now() as DateTime
+var base = now() >> "Australia/Sydney"
+var dateFrom = base -  |PT10M|
+var dateTo = base
 ---
 {
-    dateFrom: dateFrom as String { format: "yyyy-MM-dd'T'HH:mm:ss" },
-    dateTo: dateTo as String { format: "yyyy-MM-dd'T'HH:mm:ss" }
+"dateFrom": dateFrom as String { format: "yyyy-MM-dd'T'hh:mm:ss" },
+"dateTo": dateTo as String { format: "yyyy-MM-dd'T'hh:mm:ss" },
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
@@ -1725,12 +1718,6 @@ var dateTo = now() as DateTime
 	"dateFrom" : payload.dateFrom,
 	"dateTo" : payload.dateTo
 }]]]></http:uri-params>
-			<http:query-params ><![CDATA[#[output application/java
----
-{
-	"dateFrom" : payload.dateFrom,
-	"dateTo" : payload.dateTo
-}]]]></http:query-params>
 		
 </http:request>
 		<set-variable value="#[payload.order_lines?]" doc:name="Has Order Line Item Exists" doc:id="1c6e3d3c-ca35-4068-8eec-a03f76af0ea1" variableName="hasOrderLinesExists"/>
@@ -1848,7 +1835,7 @@ payload]]></ee:set-payload>
 			</ee:transform>
 	
 </flow>
-	<flow name="GetQuotesDataLoadFlow(BulkDataLoad-oneTimeActivity)" doc:id="d87ae8fa-8636-4478-a5f7-e243c2a84b70" >
+	<flow name="GetQuotesDataLoadFlow(BulkDataLoad)" doc:id="d87ae8fa-8636-4478-a5f7-e243c2a84b70" >
 		<http:listener doc:name="Get Quotes Listener" doc:id="9f34ac11-90c4-4c0c-8db0-45e86460fc3a" config-ref="HTTP_Listener_config" path="/getQuotes" />
 		<http:request method="GET" doc:name="Get Quotes Request1" doc:id="aac2a6f1-0b0d-4fe0-8fc9-0ea2058b7b31" config-ref="HTTP_Request_configuration" path="/getquotesv2?format=headers&amp;searchtype=range&amp;offset=0&amp;maxrows=1">
 			<http:headers><![CDATA[#[output application/java
@@ -1955,25 +1942,27 @@ vars.QuotePayloadSet]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 	</flow>
-	<flow name="GetQuoteScheduler15MinFlow" doc:id="90c6c060-02f3-4ef4-9b25-f2d8988f1da0" >
+	<flow name="GetQuoteScheduler5MinFlow" doc:id="90c6c060-02f3-4ef4-9b25-f2d8988f1da0" >
 		<scheduler doc:name="Scheduler" doc:id="94e0b410-edba-4b57-ad7c-7c42b4a5be24" >
 			<scheduling-strategy >
-				<fixed-frequency frequency="15" timeUnit="MINUTES"/>
+				<fixed-frequency frequency="5" timeUnit="MINUTES"/>
 			</scheduling-strategy>
 		</scheduler>
 		<ee:transform doc:name="Transform Message" doc:id="68f44077-7db3-45d3-9544-b8c2fb10cac7" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
-var dateFrom = now() as DateTime -  |PT15M|
-var dateTo = now() as DateTime
+var base = now() >> "Australia/Sydney"
+var dateFrom = base -  |PT5M|
+var dateTo = base
 ---
 {
-    dateFrom: dateFrom as String { format: "yyyy-MM-dd'T'HH:mm:ss" },
-    dateTo: dateTo as String { format: "yyyy-MM-dd'T'HH:mm:ss" }
+"dateFrom": dateFrom as String { format: "yyyy-MM-dd'T'hh:mm:ss" },
+"dateTo": dateTo as String { format: "yyyy-MM-dd'T'hh:mm:ss" },
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="ebb7cdb8-d039-43d4-9a38-2affd9985961" message="Quote - #[payload]"/>
 		<http:request method="GET" doc:name="Get Quotes Request" doc:id="216c96fe-1578-408a-97cf-1c319311ef54" config-ref="HTTP_Request_configuration" path="/getquotesv2?format=headers&amp;searchtype=dates&amp;datefrom={dateFrom}&amp;dateto={dateTo}" responseTimeout="120000">
 			<http:headers><![CDATA[#[output application/java
 ---
@@ -1987,12 +1976,6 @@ var dateTo = now() as DateTime
 	"dateFrom" : payload.dateFrom,
 	"dateTo" : payload.dateTo
 }]]]></http:uri-params>
-			<http:query-params><![CDATA[#[output application/java
----
-{
-	"dateFrom" : payload.dateFrom,
-	"dateTo" : payload.dateTo
-}]]]></http:query-params>
 		</http:request>
 		<set-variable value='#[payload."quote_headers"?]' doc:name="hasQuotesExists" doc:id="1c140083-2373-4c83-8f5a-1e79ae056883" variableName="hasQuotes" />
 		<choice doc:name="Decision" doc:id="e14849e0-fb93-447b-a2b9-143a31b1ef18" >
@@ -2326,7 +2309,7 @@ output application/json
         Product_Code__c:$.stock_code,
         UnitPrice:$.sell_price,
         Discount:$.disc_pct,
-        Quantity:$.stock_qty,
+        Quantity:$.entered_qty,
         Type__c: $.line_type,
         Location_Code__c:$.stock_location
     }
@@ -2397,7 +2380,7 @@ output application/json
         Product_Code__c:$.stock_code,
         UnitPrice:$.sell_price,
         Discount:$.disc_pct,
-        Quantity:$.stock_qty,
+        Quantity:$.entered_qty,
         Type__c: $.line_type,
         Location_Code__c:$.stock_location
     }
@@ -2436,22 +2419,23 @@ payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 	</flow>
-	<flow name="GetQuoteLineItemScheduler15MinFlow(RunsEvery15Minutes)" doc:id="85b31cc3-4b9b-43bf-87b3-d79cde258ea5" >
+	<flow name="GetQuoteLineItemScheduler10MinFlow(RunsEvery10Minutes)" doc:id="85b31cc3-4b9b-43bf-87b3-d79cde258ea5" >
 		<scheduler doc:name="Scheduler" doc:id="4599171b-1a29-49a8-bbeb-2790f09f31bf" >
 			<scheduling-strategy >
-				<fixed-frequency frequency="15" timeUnit="MINUTES"/>
+				<fixed-frequency frequency="10" timeUnit="MINUTES"/>
 			</scheduling-strategy>
 		</scheduler>
 		<ee:transform doc:name="Transform Message" doc:id="c59d2b8b-fafc-43ff-9f62-efef45af8457" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
-var dateFrom = now() as DateTime -  |PT15M|
-var dateTo = now() as DateTime
+var base = now() >> "Australia/Sydney"
+var dateFrom = base -  |PT10M|
+var dateTo = base
 ---
 {
-    dateFrom: dateFrom as String { format: "yyyy-MM-dd'T'HH:mm:ss" },
-    dateTo: dateTo as String { format: "yyyy-MM-dd'T'HH:mm:ss" }
+"dateFrom": dateFrom as String { format: "yyyy-MM-dd'T'hh:mm:ss" },
+"dateTo": dateTo as String { format: "yyyy-MM-dd'T'hh:mm:ss" },
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
@@ -2469,12 +2453,6 @@ var dateTo = now() as DateTime
 	"dateFrom" : payload.dateFrom,
 	"dateTo" : payload.dateTo
 }]]]></http:uri-params>
-			<http:query-params ><![CDATA[#[output application/java
----
-{
-	"dateFrom" : payload.dateFrom,
-	"dateTo" : payload.dateTo
-}]]]></http:query-params>
 			
 </http:request>
 		<set-variable value="#[payload.quote_lines?]" doc:name="HasQuoteLineItemExists" doc:id="40143cb5-2038-4a95-af28-e1055bdec875" variableName="HasQuoteLineItemExists"/>
@@ -2492,7 +2470,7 @@ output application/json
         Product_Code__c:$.stock_code,
         UnitPrice:$.sell_price,
         Discount:$.disc_pct,
-        Quantity:$.stock_qty,
+        Quantity:$.entered_qty,
         Type__c: $.line_type,
         Location_Code__c:$.stock_location
     }
